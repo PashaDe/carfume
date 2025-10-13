@@ -1389,27 +1389,13 @@
 
     <script>
         // ===== НАСТРОЙКИ ФОНОВЫХ ТЕКСТУР =====
-        // Несколько форматов ссылок для надежности
         const BACKGROUND_URLS = [
             'https://lh3.googleusercontent.com/d/1_osZ6U8leRJWb0fMTUf2UqaflKvNZ-Ox',
             'https://drive.google.com/uc?export=download&id=1_osZ6U8leRJWb0fMTUf2UqaflKvNZ-Ox',
             'https://drive.google.com/uc?export=view&id=1_osZ6U8leRJWb0fMTUf2UqaflKvNZ-Ox'
         ];
-        const BACKGROUND_IMAGE = BACKGROUND_URLS[0];
         
         // ===== НАСТРОЙКИ ИЗОБРАЖЕНИЙ ПРОДУКТОВ (12 ФОТО) =====
-        // Папка: https://drive.google.com/drive/folders/1sjAhgYBY4xJDYnZOsdiSPtSZuljbNVxq
-        // 
-        // КАК ПОЛУЧИТЬ ID ФАЙЛОВ:
-        // 1. Откройте папку по ссылке выше
-        // 2. Кликните на файл (например "Череп с усами.png")
-        // 3. Нажмите "Открыть доступ" → "Всем, у кого есть ссылка"
-        // 4. Скопируйте ссылку: https://drive.google.com/file/d/FILE_ID/view
-        // 5. Извлеките FILE_ID (между /d/ и /view)
-        // 6. Замените FILE_ID_X ниже на реальные ID
-        
-        // ИЗОБРАЖЕНИЯ ПРОДУКТОВ С GOOGLE DRIVE (ИСПРАВЛЕННОЕ СООТВЕТСТВИЕ)
-        // ID были в алфавитном порядке файлов в папке
         const PRODUCT_IMAGES = {
             1: 'https://lh3.googleusercontent.com/d/1CdZOZKbopNRF45JOfYviYHFbQ58BXykz',   // GENTLEMAN'S CLUB - Череп с усами
             2: 'https://lh3.googleusercontent.com/d/189JC8uaChk_OO31J5D0z2JkvNGXKegWk',   // SPEED & FREEDOM - Мото шлем
@@ -1437,7 +1423,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const sectionsWithBg = ['.hero', '.materials', '.catalog', '.experience', '.social-proof', '.where-to-buy'];
             
-            // Функция установки фона
             function setBackground(url) {
                 sectionsWithBg.forEach(selector => {
                     const section = document.querySelector(selector);
@@ -1446,67 +1431,31 @@
                         section.style.backgroundSize = 'cover';
                         section.style.backgroundPosition = 'center';
                         section.style.backgroundAttachment = 'fixed';
-                        console.log('✅ Фон установлен для:', selector, '| URL:', url);
                     }
                 });
             }
             
-            // Пробуем загрузить фон с первой ссылки
-            console.log('🔄 Загрузка фона...');
             testImageLoad(BACKGROUND_URLS[0], (success, url) => {
                 if (success) {
-                    console.log('✅ Фон успешно загружен!');
                     setBackground(url);
                 } else {
-                    console.warn('⚠️ Первая ссылка не работает, пробуем вторую...');
                     testImageLoad(BACKGROUND_URLS[1], (success2, url2) => {
                         if (success2) {
-                            console.log('✅ Фон загружен со второй ссылки!');
                             setBackground(url2);
                         } else {
-                            console.warn('⚠️ Пробуем третью ссылку...');
                             setBackground(BACKGROUND_URLS[2]);
                         }
                     });
                 }
             });
             
-            // Автоматическая загрузка изображений продуктов (12 штук)
+            // Автоматическая загрузка изображений продуктов
             const productCards = document.querySelectorAll('.product-card');
-            console.log(`📦 Найдено карточек продуктов: ${productCards.length}`);
-            
             productCards.forEach((card, index) => {
                 const img = card.querySelector('img');
                 const productId = index + 1;
-                
                 if (img && PRODUCT_IMAGES[productId]) {
-                    // Проверяем, заменен ли ID файла
-                    if (PRODUCT_IMAGES[productId].includes('FILE_ID_')) {
-                        console.warn(`⚠️ Продукт ${productId}: ID файла не заменен! Используйте инструкцию выше.`);
-                        // Показываем плейсхолдер с номером
-                        img.style.display = 'none';
-                        const placeholder = document.createElement('div');
-                        placeholder.style.cssText = 'font-size:72px;opacity:0.3;display:flex;align-items:center;justify-content:center;height:100%;';
-                        placeholder.innerHTML = `<div style="text-align:center;"><div style="font-size:80px;">❓</div><div style="font-size:16px;margin-top:10px;">Фото ${productId}</div></div>`;
-                        img.parentElement.appendChild(placeholder);
-                    } else {
-                        // ID заменен, загружаем изображение
-                        img.src = PRODUCT_IMAGES[productId];
-                        console.log(`✅ Продукт ${productId}: загружается ${PRODUCT_IMAGES[productId]}`);
-                        
-                        img.onload = function() {
-                            console.log(`✅ Продукт ${productId}: изображение загружено!`);
-                        };
-                        
-                        img.onerror = function() {
-                            console.error(`❌ Продукт ${productId}: ошибка загрузки!`);
-                            this.style.display = 'none';
-                            const placeholder = document.createElement('div');
-                            placeholder.style.cssText = 'font-size:72px;opacity:0.3;display:flex;align-items:center;justify-content:center;height:100%;';
-                            placeholder.innerHTML = `<div style="text-align:center;"><div style="font-size:80px;">⚠️</div><div style="font-size:16px;margin-top:10px;">Ошибка загрузки</div></div>`;
-                            this.parentElement.appendChild(placeholder);
-                        };
-                    }
+                    img.src = PRODUCT_IMAGES[productId];
                 }
             });
         });
@@ -1525,7 +1474,6 @@
             });
         }, observerOptions);
 
-        // Observe all fade-in elements
         document.querySelectorAll('.fade-in').forEach(el => {
             observer.observe(el);
         });
@@ -1621,13 +1569,11 @@
             const product = productData[productId];
             if (!product) return;
 
-            // Set modal content
             document.getElementById('modalTitle').textContent = product.name;
             document.getElementById('modalDescription').textContent = product.description;
             document.getElementById('modalImage').src = PRODUCT_IMAGES[productId];
             document.getElementById('modalImage').alt = product.name;
 
-            // Set composition
             const compositionList = document.getElementById('modalComposition');
             compositionList.innerHTML = '';
             product.composition.forEach(item => {
@@ -1636,7 +1582,6 @@
                 compositionList.appendChild(li);
             });
 
-            // Set features
             const featuresList = document.getElementById('modalFeatures');
             featuresList.innerHTML = '';
             product.features.forEach(item => {
@@ -1645,7 +1590,6 @@
                 featuresList.appendChild(li);
             });
 
-            // Show modal
             const modal = document.getElementById('productModal');
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -1658,21 +1602,19 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Close modal on outside click
         document.getElementById('productModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
             }
         });
 
-        // Close modal on ESC key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal();
             }
         });
 
-        // Mobile menu toggle (placeholder)
+        // Mobile menu toggle
         document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
             const navLinks = document.querySelector('.nav-links');
             if (navLinks.style.display === 'flex') {
@@ -1703,17 +1645,8 @@
             });
         });
 
-        // Parallax effect for hero section
-        window.addEventListener('scroll', () => {
-            const hero = document.querySelector('.hero');
-            const scrolled = window.pageYOffset;
-            if (hero) {
-                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-            }
-        });
-
         // ===== ПОИСК БЛИЖАЙШЕГО МАГАЗИНА С ГЕОЛОКАЦИЕЙ =====
-        let currentRoute = null; // Для кнопки "Построить маршрут"
+        let currentRoute = null;
 
         // Все магазины CarFume из Google My Maps
         const stores = [
@@ -1739,51 +1672,29 @@
         }
 
         function findNearestStore() {
-            console.log('🚀 [Store Finder] Начало работы');
-            
             const btn = document.getElementById('findStoreBtn');
             const resultBlock = document.getElementById('storeResult');
             const originalText = btn.innerHTML;
             
-            console.log('📍 [Store Finder] Элементы найдены:', !!btn, !!resultBlock);
-            
-            // Проверяем поддержку геолокации
             if (!navigator.geolocation) {
-                console.error('❌ [Store Finder] Геолокация не поддерживается');
                 alert('❌ Ваш браузер не поддерживает геолокацию.\n\nПожалуйста, используйте современный браузер.');
                 return;
             }
 
-            console.log('✅ [Store Finder] Геолокация поддерживается');
-
-            // Скрываем предыдущий результат
             resultBlock.style.display = 'none';
-            
-            // Показываем процесс
             btn.innerHTML = '⏳ Определяем местоположение...';
             btn.disabled = true;
-            
-            console.log('🔄 [Store Finder] Запрашиваем геолокацию...');
 
             navigator.geolocation.getCurrentPosition(
                 function(position) {
-                    console.log('✅ [Store Finder] Геолокация получена!');
-                    console.log('📊 [Store Finder] Координаты:', position.coords);
-                    
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
 
-                    console.log('📍 [Store Finder] Ваше местоположение:', userLat, userLng);
-                    console.log('🏪 [Store Finder] Всего магазинов:', stores.length);
-
-                    // Находим ближайший магазин
                     let nearestStore = null;
                     let minDistance = Infinity;
 
                     stores.forEach(store => {
                         const distance = calculateDistance(userLat, userLng, store.lat, store.lng);
-                        console.log(`  📏 ${store.name}: ${distance.toFixed(1)} км`);
-                        
                         if (distance < minDistance) {
                             minDistance = distance;
                             nearestStore = store;
@@ -1792,110 +1703,71 @@
 
                     if (nearestStore) {
                         const distanceKm = minDistance.toFixed(1);
-                        
-                        console.log('🎯 [Store Finder] Ближайший магазин:', nearestStore.name, distanceKm, 'км');
-
-                        // Сохраняем для маршрута
                         currentRoute = {
                             from: { lat: userLat, lng: userLng },
                             to: { lat: nearestStore.lat, lng: nearestStore.lng }
                         };
 
-                        console.log('📝 [Store Finder] Заполняем результат...');
-
-                        // Показываем результат
                         try {
-                            // Проверяем, существует ли блок результата
                             if (resultBlock && document.getElementById('storeName')) {
-                                console.log('✅ [Store Finder] Блок результата найден');
-                                
                                 document.getElementById('storeName').textContent = nearestStore.name;
                                 document.getElementById('storeAddress').textContent = nearestStore.address;
                                 document.getElementById('storePhone').textContent = `📞 ${nearestStore.phone}`;
                                 document.getElementById('storeDistance').textContent = `📍 ${distanceKm} км от вас`;
                                 
-                                // Плавное появление
                                 resultBlock.style.display = 'block';
                                 resultBlock.style.opacity = '0';
                                 setTimeout(() => {
                                     resultBlock.style.transition = 'opacity 0.5s ease';
                                     resultBlock.style.opacity = '1';
-                                    console.log('✨ [Store Finder] Блок показан');
                                 }, 10);
-                                
-                                // Прокручиваем к результату
                                 setTimeout(() => {
                                     resultBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                                 }, 300);
                             } else {
-                                // Если блок не найден, показываем в alert
-                                console.warn('⚠️ [Store Finder] Блок результата не найден, показываем alert');
-                                alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км от вас\n\nОткрыть маршрут в Google Maps?`);
-                                
-                                // Открываем маршрут
+                                alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км от вас`);
                                 if (confirm('Открыть маршрут в Google Maps?')) {
                                     const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${nearestStore.lat},${nearestStore.lng}&travelmode=driving`;
                                     window.open(mapsUrl, '_blank');
                                 }
                             }
-                            
-                            console.log('✅ [Store Finder] Результат показан');
 
-                            // Возвращаем кнопку
                             btn.innerHTML = '✅ Готово!';
                             setTimeout(() => {
                                 btn.innerHTML = originalText;
                                 btn.disabled = false;
-                                console.log('🔄 [Store Finder] Кнопка восстановлена');
                             }, 1500);
 
                         } catch (e) {
-                            console.error('❌ [Store Finder] Ошибка при показе результата:', e);
                             alert(`❌ Ошибка отображения\n\nНо мы нашли:\n${nearestStore.name}\n${nearestStore.address}\n\nРасстояние: ${distanceKm} км`);
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                         }
-                    } else {
-                        console.warn('⚠️ [Store Finder] Ближайший магазин не найден');
-                        btn.innerHTML = '❌ Магазины не найдены';
-                        setTimeout(() => {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                        }, 2000);
                     }
                 },
                 function(error) {
-                    console.error('❌ [Store Finder] Ошибка геолокации:', error);
-                    console.error('❌ [Store Finder] Код ошибки:', error.code);
-                    console.error('❌ [Store Finder] Сообщение:', error.message);
-                    
                     let errorMsg = '';
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
                             errorMsg = '❌ Вы запретили доступ к местоположению.\n\nРазрешите доступ в настройках браузера и попробуйте снова.';
-                            console.error('[Store Finder] PERMISSION_DENIED');
                             break;
                         case error.POSITION_UNAVAILABLE:
                             errorMsg = '❌ Не удалось определить местоположение.\n\nПроверьте настройки GPS или подключение к интернету.';
-                            console.error('[Store Finder] POSITION_UNAVAILABLE');
                             break;
                         case error.TIMEOUT:
                             errorMsg = '❌ Истекло время ожидания (30 сек).\n\nПопробуйте снова или проверьте соединение с интернетом.';
-                            console.error('[Store Finder] TIMEOUT');
                             break;
                         default:
                             errorMsg = '❌ Неизвестная ошибка определения местоположения.\n\nПопробуйте обновить страницу.';
-                            console.error('[Store Finder] UNKNOWN ERROR');
                     }
-                    
                     alert(errorMsg);
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                 },
                 {
-                    enableHighAccuracy: false, // Изменено на false для более быстрого ответа
-                    timeout: 30000, // Увеличен до 30 секунд
-                    maximumAge: 300000 // 5 минут кэш
+                    enableHighAccuracy: false,
+                    timeout: 30000,
+                    maximumAge: 300000
                 }
             );
         }
@@ -1936,3 +1808,4 @@
     </div>
 </body>
 </html>
+
