@@ -1707,6 +1707,12 @@
                     elementType: 'labels.text.stroke',
                     stylers: [{ color: '#000000' }]
                 }
+                ,
+                {
+                    featureType: 'administrative.country',
+                    elementType: 'geometry.stroke',
+                    stylers: [{ color: '#C0C0C0' }] // серебристый контур страны
+                }
             ];
 
             // Создание карты
@@ -1804,6 +1810,9 @@
 
             console.log('✅ Google Maps инициализирована!');
             console.log(`📍 Добавлено маркеров: ${markers.length}`);
+
+            // Отрисовка жирного серебристого контура Беларуси (GeoJSON)
+            drawBelarusBorder();
         }
 
         // Функция для построения маршрута из info window
@@ -1818,6 +1827,46 @@
                 window.open(mapsUrl, '_blank');
             }
         };
+
+        // Загрузка и отрисовка контура Беларуси из GeoJSON
+        function drawBelarusBorder() {
+            const GEOJSON_URL = 'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson';
+            fetch(GEOJSON_URL)
+                .then(r => r.json())
+                .then(geo => {
+                    const feature = geo.features.find(f =>
+                        (f.properties && (f.properties.ISO_A3 === 'BLR' || f.properties.ADMIN === 'Belarus'))
+                    );
+                    if (!feature) {
+                        console.warn('⚠️ Не найден контур Беларуси в GeoJSON');
+                        return;
+                    }
+
+                    const geometries = feature.geometry.type === 'MultiPolygon'
+                        ? feature.geometry.coordinates
+                        : [feature.geometry.coordinates];
+
+                    geometries.forEach(polygon => {
+                        // polygon: [rings], ring: [ [lng, lat], ... ]
+                        polygon.forEach(ring => {
+                            const path = ring.map(([lng, lat]) => ({ lat, lng }));
+                            const border = new google.maps.Polygon({
+                                paths: path,
+                                strokeColor: '#C0C0C0',
+                                strokeOpacity: 1,
+                                strokeWeight: 3.5, // «жирный» контур
+                                fillOpacity: 0,
+                                clickable: false,
+                                zIndex: 9999
+                            });
+                            border.setMap(map);
+                        });
+                    });
+
+                    console.log('✅ Контур Беларуси отрисован');
+                })
+                .catch(err => console.warn('⚠️ Ошибка загрузки GeoJSON контура Беларуси:', err));
+        }
 
         // Формула Haversine для точного расстояния между точками
         function calculateDistance(lat1, lon1, lat2, lon2) {
