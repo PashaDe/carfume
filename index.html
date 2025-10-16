@@ -1724,7 +1724,9 @@
             });
 
             // Добавление маркеров для магазинов
+            const boundsAll = new google.maps.LatLngBounds();
             stores.forEach((store, index) => {
+                console.log(`📌 Добавляю маркер: ${store.name}`, store.lat, store.lng);
                 const marker = new google.maps.Marker({
                     position: { lat: store.lat, lng: store.lng },
                     map: map,
@@ -1732,13 +1734,16 @@
                     animation: google.maps.Animation.DROP,
                     icon: {
                         path: google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
+                        scale: 12, // было 10 — увеличил размер для лучшей видимости
                         fillColor: '#C0C0C0',
                         fillOpacity: 1,
                         strokeColor: '#F0F0F0',
-                        strokeWeight: 2
+                        strokeWeight: 3
                     }
                 });
+
+                // Включаем точку в общий bounding box
+                boundsAll.extend({ lat: store.lat, lng: store.lng });
 
                 // Info Window с информацией о магазине
                 const infoWindow = new google.maps.InfoWindow({
@@ -1787,6 +1792,15 @@
                 markers.push(marker);
                 infoWindows.push(infoWindow);
             });
+
+            // Подгоняем карту сразу по всем магазинам
+            if (!boundsAll.isEmpty()) {
+                map.fitBounds(boundsAll);
+                // Немного отъедем, чтобы не было слишком близко
+                google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
+                    if (map.getZoom() > 10) map.setZoom(8);
+                });
+            }
 
             console.log('✅ Google Maps инициализирована!');
             console.log(`📍 Добавлено маркеров: ${markers.length}`);
