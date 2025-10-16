@@ -1805,12 +1805,25 @@
             console.log('✅ Google Maps инициализирована!');
             console.log(`📍 Добавлено маркеров: ${markers.length}`);
 
-            // Отрисовка жирного серебристого контура Беларуси (GeoJSON)
-            drawBelarusBorder();
-
             // Добавление доп. объектов через Places API
-            addPlaceByText('ТЦ Спектр, Минск', boundsAll);
-            addPlaceByText('Dana Mall, Минск', boundsAll);
+            // Пробуем через Places API
+            addPlaceByText('ТЦ Спектр, Минск, Беларусь', boundsAll);
+            addPlaceByText('Dana Mall, Минск, Беларусь', boundsAll);
+
+            // На случай, если Places заблокирован/не вернул результат — добавим резервные маркеры с координатами
+            addFallbackMarker({
+                name: 'ТЦ Спектр',
+                address: 'пр-т Дзержинского, 104, Минск',
+                lat: 53.8583,
+                lng: 27.4854
+            }, boundsAll);
+
+            addFallbackMarker({
+                name: 'Dana Mall',
+                address: 'ул. Петра Мстиславца, 11, Минск',
+                lat: 53.9316,
+                lng: 27.6526
+            }, boundsAll);
         }
 
         // Функция для построения маршрута из info window
@@ -1864,67 +1877,35 @@
             });
         }
 
-        // Загрузка и отрисовка контура Беларуси из GeoJSON
-        function drawBelarusBorder() {
-            const SOURCES = [
-                'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson',
-                'https://www.geoboundaries.org/gbOpen/BLR/ADM0/geoBoundaries-BLR-ADM0.geojson'
-            ];
-
-            function tryLoad(idx) {
-                if (idx >= SOURCES.length) {
-                    console.info('ℹ️ Используем только стилизацию границ страны (без GeoJSON контура)');
-                    return;
-                }
-                fetch(SOURCES[idx])
-                .then(r => r.json())
-                .then(geo => {
-                    let feature = null;
-                    if (geo.type === 'FeatureCollection' && Array.isArray(geo.features)) {
-                        feature = geo.features.find(f => {
-                            const p = f.properties || {};
-                            return p.ISO_A3 === 'BLR' || p.ADMIN === 'Belarus' || p.NAME === 'Belarus' || p.shapeName === 'Belarus';
-                        });
-                    } else if (geo.type === 'Feature' && geo.properties && (geo.properties.shapeName === 'Belarus' || geo.properties.ADMIN === 'Belarus')) {
-                        feature = geo;
-                    }
-                    if (!feature) {
-                        console.warn('⚠️ Не найден контур Беларуси в GeoJSON, пробую другой источник...');
-                        tryLoad(idx + 1);
-                        return;
-                    }
-
-                    const geometries = feature.geometry.type === 'MultiPolygon'
-                        ? feature.geometry.coordinates
-                        : [feature.geometry.coordinates];
-
-                    geometries.forEach(polygon => {
-                        // polygon: [rings], ring: [ [lng, lat], ... ]
-                        polygon.forEach(ring => {
-                            const path = ring.map(([lng, lat]) => ({ lat, lng }));
-                            const border = new google.maps.Polygon({
-                                paths: path,
-                                strokeColor: '#C0C0C0',
-                                strokeOpacity: 1,
-                                strokeWeight: 3.5, // «жирный» контур
-                                fillOpacity: 0,
-                                clickable: false,
-                                zIndex: 9999
-                            });
-                            border.setMap(map);
-                        });
-                    });
-
-                    console.log('✅ Контур Беларуси отрисован');
-                })
-                .catch(err => {
-                    console.warn('⚠️ Ошибка загрузки GeoJSON контура Беларуси:', err);
-                    tryLoad(idx + 1);
-                });
+        // Резервное добавление маркера по координатам
+        function addFallbackMarker(place, boundsAll) {
+            const pos = new google.maps.LatLng(place.lat, place.lng);
+            const marker = new google.maps.Marker({ map, position: pos, title: place.name, animation: google.maps.Animation.DROP });
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="font-family: Arial, sans-serif; padding: 10px; min-width: 260px;">
+                        <h3 style="margin:0 0 8px 0; font-size:18px; color:#000;">${place.name}</h3>
+                        <p style="margin:0 0 6px 0; color:#333; font-size:14px;">📍 ${place.address}</p>
+                        <button onclick="openRouteFromMap(${place.lat}, ${place.lng})" style="margin-top:6px;padding:8px 14px;background:linear-gradient(135deg,#C0C0C0,#F0F0F0);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">🗺️ ПОСТРОИТЬ МАРШРУТ</button>
+                    </div>
+                `
+            });
+            marker.addListener('click', () => {
+                infoWindows.forEach(iw => iw.close());
+                infoWindow.open(map, marker);
+            });
+            markers.push(marker);
+            infoWindows.push(infoWindow);
+            if (boundsAll) {
+                boundsAll.extend(pos);
+                map.fitBounds(boundsAll);
             }
-
-            tryLoad(0);
+            console.log(`✅ Добавлен резервный объект: ${place.name}`);
         }
+
+        // Загрузка и отрисовка контура Беларуси из GeoJSON
+        // Убрали загрузку внешнего GeoJSON, чтобы исключить CORS/404.
+        // Серебристый контур задается стилем administrative.country.geometry.stroke в стилях карты.
 
         // Формула Haversine для точного расстояния между точками
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -2131,7 +2112,7 @@
 
     <!-- Google Maps API -->
     <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBfZfUf7ESlGLoJoBE3gMFEdyqCfePR7KQ&callback=initMap">
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBfZfUf7ESlGLoJoBE3gMFEdyqCfePR7KQ&callback=initMap&libraries=places">
     </script>
 </body>
 </html>
