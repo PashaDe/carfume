@@ -501,28 +501,11 @@
             position: relative;
         }
 
-        /* Скрываем верхнюю полосу карты и добавляем заголовок */
-        .map-container::before {
-            content: 'Точки продаж CarFume';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 60px; /* Оставляем место для кнопки "Увеличить" */
-            height: 50px;
-            background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
-            border-bottom-right-radius: 15px;
-            z-index: 10;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            padding-left: 25px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #C0C0C0;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-family: 'Playfair Display', serif;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        /* Google Maps styling */
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
         }
 
 
@@ -677,13 +660,6 @@
                 padding: 15px 40px;
                 font-size: 14px;
             }
-
-            /* Заголовок карты на планшетах */
-            .map-container::before {
-                font-size: 16px;
-                padding-left: 20px;
-                height: 45px;
-            }
         }
 
         @media (max-width: 480px) {
@@ -697,15 +673,6 @@
             .testimonials-grid {
                 grid-template-columns: 1fr;
                 gap: 30px;
-            }
-
-            /* Заголовок карты на мобильных */
-            .map-container::before {
-                font-size: 14px;
-                padding-left: 15px;
-                height: 40px;
-                letter-spacing: 0.5px;
-                right: 50px; /* Меньше места для кнопки */
             }
         }
 
@@ -1320,13 +1287,7 @@
         <div class="container">
             <h2 class="section-title fade-in">ГОТОВЫ ПРЕОБРАЗИТЬ АТМОСФЕРУ?</h2>
             <div class="map-container fade-in">
-                <iframe src="https://www.google.com/maps/d/embed?mid=19EH5l1VhogcTmGKQI2B379h9R9tiQMg&ehbc=2E312F" 
-                        width="100%" 
-                        height="100%" 
-                        style="border:0; border-radius:15px;"
-                        allowfullscreen="" 
-                        loading="lazy">
-                </iframe>
+                <div id="map"></div>
             </div>
             <div class="cta-center">
                 <button onclick="findNearestStore()" class="cta-button" id="findStoreBtn">
@@ -1389,27 +1350,13 @@
 
     <script>
         // ===== НАСТРОЙКИ ФОНОВЫХ ТЕКСТУР =====
-        // Несколько форматов ссылок для надежности
         const BACKGROUND_URLS = [
             'https://lh3.googleusercontent.com/d/1_osZ6U8leRJWb0fMTUf2UqaflKvNZ-Ox',
             'https://drive.google.com/uc?export=download&id=1_osZ6U8leRJWb0fMTUf2UqaflKvNZ-Ox',
             'https://drive.google.com/uc?export=view&id=1_osZ6U8leRJWb0fMTUf2UqaflKvNZ-Ox'
         ];
-        const BACKGROUND_IMAGE = BACKGROUND_URLS[0];
         
         // ===== НАСТРОЙКИ ИЗОБРАЖЕНИЙ ПРОДУКТОВ (12 ФОТО) =====
-        // Папка: https://drive.google.com/drive/folders/1sjAhgYBY4xJDYnZOsdiSPtSZuljbNVxq
-        // 
-        // КАК ПОЛУЧИТЬ ID ФАЙЛОВ:
-        // 1. Откройте папку по ссылке выше
-        // 2. Кликните на файл (например "Череп с усами.png")
-        // 3. Нажмите "Открыть доступ" → "Всем, у кого есть ссылка"
-        // 4. Скопируйте ссылку: https://drive.google.com/file/d/FILE_ID/view
-        // 5. Извлеките FILE_ID (между /d/ и /view)
-        // 6. Замените FILE_ID_X ниже на реальные ID
-        
-        // ИЗОБРАЖЕНИЯ ПРОДУКТОВ С GOOGLE DRIVE (ИСПРАВЛЕННОЕ СООТВЕТСТВИЕ)
-        // ID были в алфавитном порядке файлов в папке
         const PRODUCT_IMAGES = {
             1: 'https://lh3.googleusercontent.com/d/1CdZOZKbopNRF45JOfYviYHFbQ58BXykz',   // GENTLEMAN'S CLUB - Череп с усами
             2: 'https://lh3.googleusercontent.com/d/189JC8uaChk_OO31J5D0z2JkvNGXKegWk',   // SPEED & FREEDOM - Мото шлем
@@ -1437,7 +1384,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const sectionsWithBg = ['.hero', '.materials', '.catalog', '.experience', '.social-proof', '.where-to-buy'];
             
-            // Функция установки фона
             function setBackground(url) {
                 sectionsWithBg.forEach(selector => {
                     const section = document.querySelector(selector);
@@ -1446,67 +1392,31 @@
                         section.style.backgroundSize = 'cover';
                         section.style.backgroundPosition = 'center';
                         section.style.backgroundAttachment = 'fixed';
-                        console.log('✅ Фон установлен для:', selector, '| URL:', url);
                     }
                 });
             }
             
-            // Пробуем загрузить фон с первой ссылки
-            console.log('🔄 Загрузка фона...');
             testImageLoad(BACKGROUND_URLS[0], (success, url) => {
                 if (success) {
-                    console.log('✅ Фон успешно загружен!');
                     setBackground(url);
                 } else {
-                    console.warn('⚠️ Первая ссылка не работает, пробуем вторую...');
                     testImageLoad(BACKGROUND_URLS[1], (success2, url2) => {
                         if (success2) {
-                            console.log('✅ Фон загружен со второй ссылки!');
                             setBackground(url2);
                         } else {
-                            console.warn('⚠️ Пробуем третью ссылку...');
                             setBackground(BACKGROUND_URLS[2]);
                         }
                     });
                 }
             });
             
-            // Автоматическая загрузка изображений продуктов (12 штук)
+            // Автоматическая загрузка изображений продуктов
             const productCards = document.querySelectorAll('.product-card');
-            console.log(`📦 Найдено карточек продуктов: ${productCards.length}`);
-            
             productCards.forEach((card, index) => {
                 const img = card.querySelector('img');
                 const productId = index + 1;
-                
                 if (img && PRODUCT_IMAGES[productId]) {
-                    // Проверяем, заменен ли ID файла
-                    if (PRODUCT_IMAGES[productId].includes('FILE_ID_')) {
-                        console.warn(`⚠️ Продукт ${productId}: ID файла не заменен! Используйте инструкцию выше.`);
-                        // Показываем плейсхолдер с номером
-                        img.style.display = 'none';
-                        const placeholder = document.createElement('div');
-                        placeholder.style.cssText = 'font-size:72px;opacity:0.3;display:flex;align-items:center;justify-content:center;height:100%;';
-                        placeholder.innerHTML = `<div style="text-align:center;"><div style="font-size:80px;">❓</div><div style="font-size:16px;margin-top:10px;">Фото ${productId}</div></div>`;
-                        img.parentElement.appendChild(placeholder);
-                    } else {
-                        // ID заменен, загружаем изображение
-                        img.src = PRODUCT_IMAGES[productId];
-                        console.log(`✅ Продукт ${productId}: загружается ${PRODUCT_IMAGES[productId]}`);
-                        
-                        img.onload = function() {
-                            console.log(`✅ Продукт ${productId}: изображение загружено!`);
-                        };
-                        
-                        img.onerror = function() {
-                            console.error(`❌ Продукт ${productId}: ошибка загрузки!`);
-                            this.style.display = 'none';
-                            const placeholder = document.createElement('div');
-                            placeholder.style.cssText = 'font-size:72px;opacity:0.3;display:flex;align-items:center;justify-content:center;height:100%;';
-                            placeholder.innerHTML = `<div style="text-align:center;"><div style="font-size:80px;">⚠️</div><div style="font-size:16px;margin-top:10px;">Ошибка загрузки</div></div>`;
-                            this.parentElement.appendChild(placeholder);
-                        };
-                    }
+                    img.src = PRODUCT_IMAGES[productId];
                 }
             });
         });
@@ -1525,7 +1435,6 @@
             });
         }, observerOptions);
 
-        // Observe all fade-in elements
         document.querySelectorAll('.fade-in').forEach(el => {
             observer.observe(el);
         });
@@ -1621,13 +1530,11 @@
             const product = productData[productId];
             if (!product) return;
 
-            // Set modal content
             document.getElementById('modalTitle').textContent = product.name;
             document.getElementById('modalDescription').textContent = product.description;
             document.getElementById('modalImage').src = PRODUCT_IMAGES[productId];
             document.getElementById('modalImage').alt = product.name;
 
-            // Set composition
             const compositionList = document.getElementById('modalComposition');
             compositionList.innerHTML = '';
             product.composition.forEach(item => {
@@ -1636,7 +1543,6 @@
                 compositionList.appendChild(li);
             });
 
-            // Set features
             const featuresList = document.getElementById('modalFeatures');
             featuresList.innerHTML = '';
             product.features.forEach(item => {
@@ -1645,7 +1551,6 @@
                 featuresList.appendChild(li);
             });
 
-            // Show modal
             const modal = document.getElementById('productModal');
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -1658,21 +1563,19 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Close modal on outside click
         document.getElementById('productModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
             }
         });
 
-        // Close modal on ESC key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal();
             }
         });
 
-        // Mobile menu toggle (placeholder)
+        // Mobile menu toggle
         document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
             const navLinks = document.querySelector('.nav-links');
             if (navLinks.style.display === 'flex') {
@@ -1703,19 +1606,14 @@
             });
         });
 
-        // Parallax effect for hero section
-        window.addEventListener('scroll', () => {
-            const hero = document.querySelector('.hero');
-            const scrolled = window.pageYOffset;
-            if (hero) {
-                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-            }
-        });
+        // ===== GOOGLE MAPS INTEGRATION =====
+        let map;
+        let markers = [];
+        let infoWindows = [];
+        let userMarker = null;
+        let currentRoute = null;
 
-        // ===== ПОИСК БЛИЖАЙШЕГО МАГАЗИНА С ГЕОЛОКАЦИЕЙ =====
-        let currentRoute = null; // Для кнопки "Построить маршрут"
-
-        // Все магазины CarFume из Google My Maps
+        // Все магазины CarFume
         const stores = [
             { name: 'Минск', address: 'ТЦ "Галилео", пр-т Независимости, 154', lat: 53.9006, lng: 27.5590, phone: '+375 29 123-45-67' },
             { name: 'Гомель', address: 'ТЦ "Секрет", ул. Советская, 25', lat: 52.4345, lng: 30.9754, phone: '+375 29 234-56-78' },
@@ -1724,6 +1622,188 @@
             { name: 'Гродно', address: 'ТЦ "Тринити", ул. Горького, 65', lat: 53.6884, lng: 23.8258, phone: '+375 29 567-89-01' },
             { name: 'Могилев', address: 'ТЦ "Атриум", пр-т Мира, 32', lat: 53.9007, lng: 30.3313, phone: '+375 29 678-90-12' }
         ];
+
+        // Инициализация Google Maps
+        function initMap() {
+            console.log('🗺️ Инициализация Google Maps...');
+
+            // Темная стилизация карты (серебряно-черная тема)
+            const darkMapStyles = [
+                { elementType: 'geometry', stylers: [{ color: '#1a1a1a' }] },
+                { elementType: 'labels.text.stroke', stylers: [{ color: '#000000' }] },
+                { elementType: 'labels.text.fill', stylers: [{ color: '#C0C0C0' }] },
+                {
+                    featureType: 'administrative.locality',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#F0F0F0' }]
+                },
+                {
+                    featureType: 'poi',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#A8A8A8' }]
+                },
+                {
+                    featureType: 'poi.park',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#0f0f0f' }]
+                },
+                {
+                    featureType: 'poi.park',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#6b6b6b' }]
+                },
+                {
+                    featureType: 'road',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#2a2a2a' }]
+                },
+                {
+                    featureType: 'road',
+                    elementType: 'geometry.stroke',
+                    stylers: [{ color: '#1a1a1a' }]
+                },
+                {
+                    featureType: 'road',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#8a8a8a' }]
+                },
+                {
+                    featureType: 'road.highway',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#3a3a3a' }]
+                },
+                {
+                    featureType: 'road.highway',
+                    elementType: 'geometry.stroke',
+                    stylers: [{ color: '#1f1f1f' }]
+                },
+                {
+                    featureType: 'road.highway',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#C0C0C0' }]
+                },
+                {
+                    featureType: 'transit',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#2a2a2a' }]
+                },
+                {
+                    featureType: 'transit.station',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#A8A8A8' }]
+                },
+                {
+                    featureType: 'water',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#0a0a0a' }]
+                },
+                {
+                    featureType: 'water',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#515c6d' }]
+                },
+                {
+                    featureType: 'water',
+                    elementType: 'labels.text.stroke',
+                    stylers: [{ color: '#000000' }]
+                }
+            ];
+
+            // Создание карты
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 7,
+                center: { lat: 53.5, lng: 28.0 }, // Центр Беларуси
+                styles: darkMapStyles,
+                disableDefaultUI: false,
+                zoomControl: true,
+                mapTypeControl: false,
+                scaleControl: true,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: true
+            });
+
+            // Добавление маркеров для магазинов
+            stores.forEach((store, index) => {
+                const marker = new google.maps.Marker({
+                    position: { lat: store.lat, lng: store.lng },
+                    map: map,
+                    title: store.name,
+                    animation: google.maps.Animation.DROP,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: '#C0C0C0',
+                        fillOpacity: 1,
+                        strokeColor: '#F0F0F0',
+                        strokeWeight: 2
+                    }
+                });
+
+                // Info Window с информацией о магазине
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="font-family: Arial, sans-serif; padding: 10px; min-width: 250px;">
+                            <h3 style="margin: 0 0 10px 0; color: #000; font-size: 18px; font-weight: bold;">
+                                ${store.name}
+                            </h3>
+                            <p style="margin: 5px 0; color: #333; font-size: 14px;">
+                                📍 ${store.address}
+                            </p>
+                            <p style="margin: 5px 0; color: #333; font-size: 14px;">
+                                📞 ${store.phone}
+                            </p>
+                            <button 
+                                onclick="openRouteFromMap(${store.lat}, ${store.lng})" 
+                                style="
+                                    margin-top: 10px;
+                                    padding: 10px 20px;
+                                    background: linear-gradient(135deg, #C0C0C0, #F0F0F0);
+                                    color: #000;
+                                    border: none;
+                                    border-radius: 8px;
+                                    cursor: pointer;
+                                    font-weight: bold;
+                                    font-size: 14px;
+                                    width: 100%;
+                                    transition: all 0.3s ease;
+                                "
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'"
+                            >
+                                🗺️ ПОСТРОИТЬ МАРШРУТ
+                            </button>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    // Закрываем все открытые info windows
+                    infoWindows.forEach(iw => iw.close());
+                    // Открываем текущий
+                    infoWindow.open(map, marker);
+                });
+
+                markers.push(marker);
+                infoWindows.push(infoWindow);
+            });
+
+            console.log('✅ Google Maps инициализирована!');
+            console.log(`📍 Добавлено маркеров: ${markers.length}`);
+        }
+
+        // Функция для построения маршрута из info window
+        window.openRouteFromMap = function(destLat, destLng) {
+            if (userMarker) {
+                const userPos = userMarker.getPosition();
+                const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userPos.lat()},${userPos.lng()}&destination=${destLat},${destLng}&travelmode=driving`;
+                window.open(mapsUrl, '_blank');
+            } else {
+                // Если нет геолокации, просто открываем маршрут до магазина
+                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+                window.open(mapsUrl, '_blank');
+            }
+        };
 
         // Формула Haversine для точного расстояния между точками
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -1739,163 +1819,156 @@
         }
 
         function findNearestStore() {
-            console.log('🚀 [Store Finder] Начало работы');
-            
             const btn = document.getElementById('findStoreBtn');
             const resultBlock = document.getElementById('storeResult');
             const originalText = btn.innerHTML;
             
-            console.log('📍 [Store Finder] Элементы найдены:', !!btn, !!resultBlock);
-            
-            // Проверяем поддержку геолокации
             if (!navigator.geolocation) {
-                console.error('❌ [Store Finder] Геолокация не поддерживается');
                 alert('❌ Ваш браузер не поддерживает геолокацию.\n\nПожалуйста, используйте современный браузер.');
                 return;
             }
 
-            console.log('✅ [Store Finder] Геолокация поддерживается');
-
-            // Скрываем предыдущий результат
             resultBlock.style.display = 'none';
-            
-            // Показываем процесс
             btn.innerHTML = '⏳ Определяем местоположение...';
             btn.disabled = true;
-            
-            console.log('🔄 [Store Finder] Запрашиваем геолокацию...');
 
             navigator.geolocation.getCurrentPosition(
                 function(position) {
-                    console.log('✅ [Store Finder] Геолокация получена!');
-                    console.log('📊 [Store Finder] Координаты:', position.coords);
-                    
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
 
-                    console.log('📍 [Store Finder] Ваше местоположение:', userLat, userLng);
-                    console.log('🏪 [Store Finder] Всего магазинов:', stores.length);
+                    console.log('📍 Местоположение пользователя:', userLat, userLng);
 
-                    // Находим ближайший магазин
                     let nearestStore = null;
+                    let nearestStoreIndex = -1;
                     let minDistance = Infinity;
 
-                    stores.forEach(store => {
+                    stores.forEach((store, index) => {
                         const distance = calculateDistance(userLat, userLng, store.lat, store.lng);
-                        console.log(`  📏 ${store.name}: ${distance.toFixed(1)} км`);
-                        
                         if (distance < minDistance) {
                             minDistance = distance;
                             nearestStore = store;
+                            nearestStoreIndex = index;
                         }
                     });
 
                     if (nearestStore) {
                         const distanceKm = minDistance.toFixed(1);
-                        
-                        console.log('🎯 [Store Finder] Ближайший магазин:', nearestStore.name, distanceKm, 'км');
-
-                        // Сохраняем для маршрута
                         currentRoute = {
                             from: { lat: userLat, lng: userLng },
                             to: { lat: nearestStore.lat, lng: nearestStore.lng }
                         };
 
-                        console.log('📝 [Store Finder] Заполняем результат...');
+                        console.log('🎯 Ближайший магазин:', nearestStore.name, '- расстояние:', distanceKm, 'км');
 
-                        // Показываем результат
+                        // ===== ИНТЕГРАЦИЯ С КАРТОЙ =====
+                        if (map && markers[nearestStoreIndex]) {
+                            // Удаляем старый маркер пользователя, если есть
+                            if (userMarker) {
+                                userMarker.setMap(null);
+                            }
+
+                            // Добавляем маркер пользователя (синий)
+                            userMarker = new google.maps.Marker({
+                                position: { lat: userLat, lng: userLng },
+                                map: map,
+                                title: 'Ваше местоположение',
+                                icon: {
+                                    path: google.maps.SymbolPath.CIRCLE,
+                                    scale: 8,
+                                    fillColor: '#4285F4',
+                                    fillOpacity: 1,
+                                    strokeColor: '#FFFFFF',
+                                    strokeWeight: 2
+                                },
+                                animation: google.maps.Animation.DROP
+                            });
+
+                            // Центрируем карту на середине между пользователем и магазином
+                            const bounds = new google.maps.LatLngBounds();
+                            bounds.extend({ lat: userLat, lng: userLng });
+                            bounds.extend({ lat: nearestStore.lat, lng: nearestStore.lng });
+                            map.fitBounds(bounds);
+                            
+                            // Увеличиваем zoom через 500мс
+                            setTimeout(() => {
+                                const currentZoom = map.getZoom();
+                                if (currentZoom > 10) {
+                                    map.setZoom(10);
+                                }
+                            }, 500);
+
+                            // Открываем info window ближайшего магазина
+                            setTimeout(() => {
+                                infoWindows.forEach(iw => iw.close());
+                                infoWindows[nearestStoreIndex].open(map, markers[nearestStoreIndex]);
+                            }, 800);
+
+                            console.log('🗺️ Карта обновлена: центрирована на магазин', nearestStore.name);
+                        }
+
                         try {
-                            // Проверяем, существует ли блок результата
                             if (resultBlock && document.getElementById('storeName')) {
-                                console.log('✅ [Store Finder] Блок результата найден');
-                                
                                 document.getElementById('storeName').textContent = nearestStore.name;
                                 document.getElementById('storeAddress').textContent = nearestStore.address;
                                 document.getElementById('storePhone').textContent = `📞 ${nearestStore.phone}`;
                                 document.getElementById('storeDistance').textContent = `📍 ${distanceKm} км от вас`;
                                 
-                                // Плавное появление
                                 resultBlock.style.display = 'block';
                                 resultBlock.style.opacity = '0';
                                 setTimeout(() => {
                                     resultBlock.style.transition = 'opacity 0.5s ease';
                                     resultBlock.style.opacity = '1';
-                                    console.log('✨ [Store Finder] Блок показан');
                                 }, 10);
-                                
-                                // Прокручиваем к результату
                                 setTimeout(() => {
                                     resultBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                                 }, 300);
                             } else {
-                                // Если блок не найден, показываем в alert
-                                console.warn('⚠️ [Store Finder] Блок результата не найден, показываем alert');
-                                alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км от вас\n\nОткрыть маршрут в Google Maps?`);
-                                
-                                // Открываем маршрут
+                                alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км от вас`);
                                 if (confirm('Открыть маршрут в Google Maps?')) {
                                     const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${nearestStore.lat},${nearestStore.lng}&travelmode=driving`;
                                     window.open(mapsUrl, '_blank');
                                 }
                             }
-                            
-                            console.log('✅ [Store Finder] Результат показан');
 
-                            // Возвращаем кнопку
                             btn.innerHTML = '✅ Готово!';
                             setTimeout(() => {
                                 btn.innerHTML = originalText;
                                 btn.disabled = false;
-                                console.log('🔄 [Store Finder] Кнопка восстановлена');
                             }, 1500);
 
                         } catch (e) {
-                            console.error('❌ [Store Finder] Ошибка при показе результата:', e);
+                            console.error('❌ Ошибка отображения результата:', e);
                             alert(`❌ Ошибка отображения\n\nНо мы нашли:\n${nearestStore.name}\n${nearestStore.address}\n\nРасстояние: ${distanceKm} км`);
                             btn.innerHTML = originalText;
                             btn.disabled = false;
                         }
-                    } else {
-                        console.warn('⚠️ [Store Finder] Ближайший магазин не найден');
-                        btn.innerHTML = '❌ Магазины не найдены';
-                        setTimeout(() => {
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                        }, 2000);
                     }
                 },
                 function(error) {
-                    console.error('❌ [Store Finder] Ошибка геолокации:', error);
-                    console.error('❌ [Store Finder] Код ошибки:', error.code);
-                    console.error('❌ [Store Finder] Сообщение:', error.message);
-                    
+                    console.error('❌ Ошибка геолокации:', error);
                     let errorMsg = '';
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
                             errorMsg = '❌ Вы запретили доступ к местоположению.\n\nРазрешите доступ в настройках браузера и попробуйте снова.';
-                            console.error('[Store Finder] PERMISSION_DENIED');
                             break;
                         case error.POSITION_UNAVAILABLE:
                             errorMsg = '❌ Не удалось определить местоположение.\n\nПроверьте настройки GPS или подключение к интернету.';
-                            console.error('[Store Finder] POSITION_UNAVAILABLE');
                             break;
                         case error.TIMEOUT:
                             errorMsg = '❌ Истекло время ожидания (30 сек).\n\nПопробуйте снова или проверьте соединение с интернетом.';
-                            console.error('[Store Finder] TIMEOUT');
                             break;
                         default:
                             errorMsg = '❌ Неизвестная ошибка определения местоположения.\n\nПопробуйте обновить страницу.';
-                            console.error('[Store Finder] UNKNOWN ERROR');
                     }
-                    
                     alert(errorMsg);
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                 },
                 {
-                    enableHighAccuracy: false, // Изменено на false для более быстрого ответа
-                    timeout: 30000, // Увеличен до 30 секунд
-                    maximumAge: 300000 // 5 минут кэш
+                    enableHighAccuracy: false,
+                    timeout: 30000,
+                    maximumAge: 300000
                 }
             );
         }
@@ -1934,5 +2007,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Google Maps API -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBfZfUf7ESlGLoJoBE3gMFEdyqCfePR7KQ&callback=initMap">
+    </script>
 </body>
 </html>
+
