@@ -1441,8 +1441,15 @@
             }
         };
 
+        // Блокировка повторного открытия модалки после закрытия
+        let modalOpenLockUntil = 0;
+
         // Open product modal
         function openProductModal(productId) {
+            // Защита от ложных касаний: нельзя открыть раньше, чем через 500 мс после закрытия
+            if (Date.now() < modalOpenLockUntil) {
+                return;
+            }
             const product = productData[productId];
             if (!product) return;
 
@@ -1477,6 +1484,8 @@
             const modal = document.getElementById('productModal');
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
+            // Ставим задержку 500 мс перед следующим открытием товара
+            modalOpenLockUntil = Date.now() + 500;
         }
 
         // Безопасно навешиваем обработчики после построения DOM
