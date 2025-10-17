@@ -1459,6 +1459,10 @@
             document.getElementById('modalImage').src = PRODUCT_IMAGES[productId];
             document.getElementById('modalImage').alt = product.name;
 
+            // Показать блок изображения для товаров
+            const modalImageBlock = document.querySelector('.modal-image');
+            if (modalImageBlock) modalImageBlock.style.display = 'flex';
+
             const compositionList = document.getElementById('modalComposition');
             compositionList.innerHTML = '';
             product.composition.forEach(item => {
@@ -1474,6 +1478,67 @@
                 li.textContent = item;
                 featuresList.appendChild(li);
             });
+
+            // Всегда показываем секции списков для товаров
+            const featuresBlocks = document.querySelectorAll('.modal-features');
+            if (featuresBlocks[0]) featuresBlocks[0].style.display = 'block';
+            if (featuresBlocks[1]) featuresBlocks[1].style.display = 'block';
+
+            const modal = document.getElementById('productModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Универсальное открытие модалки для материалов и отзывов
+        function openGenericModal(title, description, imageUrl = '', composition = [], features = []) {
+            if (Date.now() < modalOpenLockUntil) {
+                return;
+            }
+
+            const titleEl = document.getElementById('modalTitle');
+            const descEl = document.getElementById('modalDescription');
+            const imgEl = document.getElementById('modalImage');
+            const imageBlock = document.querySelector('.modal-image');
+            const compositionList = document.getElementById('modalComposition');
+            const featuresList = document.getElementById('modalFeatures');
+            const featuresBlocks = document.querySelectorAll('.modal-features');
+
+            if (titleEl) titleEl.textContent = title || '';
+            if (descEl) descEl.textContent = description || '';
+
+            if (imageBlock) {
+                if (imageUrl) {
+                    imageBlock.style.display = 'flex';
+                    if (imgEl) {
+                        imgEl.src = imageUrl;
+                        imgEl.alt = title || '';
+                    }
+                } else {
+                    imageBlock.style.display = 'none';
+                }
+            }
+
+            if (compositionList) {
+                compositionList.innerHTML = '';
+                (composition || []).forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    compositionList.appendChild(li);
+                });
+            }
+
+            if (featuresList) {
+                featuresList.innerHTML = '';
+                (features || []).forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    featuresList.appendChild(li);
+                });
+            }
+
+            // Скрывать пустые секции
+            if (featuresBlocks[0]) featuresBlocks[0].style.display = (composition && composition.length) ? 'block' : 'none';
+            if (featuresBlocks[1]) featuresBlocks[1].style.display = (features && features.length) ? 'block' : 'none';
 
             const modal = document.getElementById('productModal');
             modal.classList.add('active');
@@ -1501,6 +1566,27 @@
 
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') closeModal();
+            });
+
+            // Кликабельность карточек материалов: открыть полное описание
+            document.querySelectorAll('.feature-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const title = (card.querySelector('h3') && card.querySelector('h3').textContent) || 'Материал';
+                    const desc = (card.querySelector('p') && card.querySelector('p').textContent) || '';
+                    const img = (card.querySelector('img') && card.querySelector('img').src) || '';
+                    openGenericModal(title, desc, img);
+                });
+            });
+
+            // Кликабельность отзывов: открыть полный отзыв
+            document.querySelectorAll('.testimonial-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const quote = (card.querySelector('.testimonial-quote') && card.querySelector('.testimonial-quote').textContent) || '';
+                    const name = (card.querySelector('.author-name') && card.querySelector('.author-name').textContent) || 'Отзыв';
+                    const car = (card.querySelector('.author-title') && card.querySelector('.author-title').textContent) || '';
+                    const title = car ? `${name} — ${car}` : name;
+                    openGenericModal(title, quote, '');
+                });
             });
 
             const toggle = document.querySelector('.mobile-menu-toggle');
