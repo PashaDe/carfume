@@ -1654,7 +1654,10 @@
                 scaleControl: true,
                 streetViewControl: false,
                 rotateControl: false,
-                fullscreenControl: true
+                fullscreenControl: true,
+                // Мобильное управление: перемещение одним пальцем
+                gestureHandling: 'greedy',
+                draggable: true
             });
 
             // Добавление маркеров для магазинов
@@ -1911,13 +1914,13 @@
                                 }
                             }, 500);
 
-                            // Открываем info window ближайшего магазина
+                            // Открываем info window ближайшего магазина без автоцентрирования
                             setTimeout(() => {
                                 infoWindows.forEach(iw => iw.close());
                                 infoWindows[nearestStoreIndex].open(map, markers[nearestStoreIndex]);
                             }, 800);
 
-                            console.log('🗺️ Карта обновлена: центрирована на магазин', nearestStore.name);
+                            console.log('🗺️ Карта обновлена: открыто окно магазина (без автоцентрирования)', nearestStore.name);
                         }
 
                         try {
