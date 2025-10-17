@@ -99,11 +99,11 @@
 
         /* Sections */
         section {
-            min-height: 100vh;
+            min-height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 60px 40px; /* компактнее вертикальные отступы */
+            padding: 30px 40px; /* компактнее вертикальные отступы (≈ в 2 раза меньше) */
             position: relative;
         }
 
@@ -193,7 +193,7 @@
         .section-title {
             text-align: center;
             font-size: 56px;
-            margin-bottom: 40px; /* меньше расстояние под заголовком */
+            margin-bottom: 20px; /* ещё меньше расстояние под заголовком */
             color: var(--silver);
             position: relative;
         }
@@ -419,6 +419,9 @@
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* как у каталога */
             gap: 20px;
             margin-top: 32px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .testimonial-card {
