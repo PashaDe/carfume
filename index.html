@@ -209,9 +209,10 @@
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 50px;
-            margin-top: 60px;
+            grid-template-columns: repeat(3, 1fr);
+            align-items: start;
+            gap: 24px;
+            margin-top: 40px;
         }
 
         .feature-card {
@@ -641,7 +642,8 @@
             }
             .features-grid,
             .testimonials-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
             }
 
             /* компактные карточки товара */
@@ -736,10 +738,10 @@
             background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
             border: 2px solid rgba(192, 192, 192, 0.3);
             border-radius: 12px;
-            max-width: 420px;
-            width: calc(100vw - 12px);
-            max-height: 90vh;
+            width: min(420px, 96vw);
+            height: min(88vh, 680px);
             position: relative;
+            overflow: hidden; /* всё строго внутри контура, без внутренних скроллов */
             animation: slideUp 0.2s ease;
             box-shadow: 0 20px 80px rgba(192, 192, 192, 0.3);
         }
@@ -768,9 +770,11 @@
 
         .modal-body {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            padding: 14px;
+            grid-template-rows: auto 1fr auto auto; /* изображение | авто-текст | списки | кнопка */
+            gap: 10px;
+            padding: 12px;
+            height: 100%;
+            overflow: hidden; /* без внутренних скроллов */
         }
 
         .modal-image {
@@ -778,14 +782,14 @@
             align-items: center;
             justify-content: center;
             background: transparent;
-            border-radius: 15px;
+            border-radius: 10px;
             overflow: hidden;
+            min-height: 34vh;
         }
 
         .modal-image img {
             width: 100%;
-            max-height: 38vh;
-            height: auto;
+            height: 100%;
             object-fit: contain;
             filter: drop-shadow(0 10px 40px rgba(192, 192, 192, 0.4));
         }
@@ -793,7 +797,8 @@
         .modal-info {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
+            overflow: hidden; /* не выползает */
         }
 
         .modal-title {
@@ -811,9 +816,7 @@
             margin-bottom: 8px;
         }
 
-        .modal-features {
-            margin-bottom: 30px;
-        }
+        .modal-features { margin-bottom: 6px; overflow: hidden; }
 
         .modal-features h4 {
             font-size: 14px;
@@ -1469,9 +1472,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             const modalEl = document.getElementById('productModal');
             if (modalEl) {
-                modalEl.addEventListener('click', function(e) {
-                    if (e.target === this) closeModal();
-                });
+                // Закрывать модалку по нажатию в любом месте экрана
+                const closeAnyTap = () => closeModal();
+                modalEl.addEventListener('click', closeAnyTap);
+                modalEl.addEventListener('touchstart', closeAnyTap, { passive: true });
             }
 
             document.addEventListener('keydown', function(e) {
