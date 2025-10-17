@@ -1189,16 +1189,7 @@
                     </div>
                 </div>
 
-                <div class="testimonial-card fade-in">
-                    <p class="testimonial-quote">"Взял «Кожа и Табак» по рекомендации друга. Это не просто ароматизатор, это часть имиджа. Коллеги заходят в машину и сразу: «Вау, как здесь пахнет!»"</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">ДС</div>
-                        <div class="author-info">
-                            <div class="author-name">Дмитрий Соколов</div>
-                            <div class="author-title">BMW 7 Series</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- третий отзыв временно скрыт -->
             </div>
         </div>
     </section>
@@ -1599,7 +1590,7 @@
                     const name = (card.querySelector('.author-name') && card.querySelector('.author-name').textContent) || 'Отзыв';
                     const car = (card.querySelector('.author-title') && card.querySelector('.author-title').textContent) || '';
                     const title = car ? `${name} — ${car}` : name;
-                    openGenericModal(title, quote, '');
+                    openGenericModal(title, quote, '', [], []);
                 });
             });
 
