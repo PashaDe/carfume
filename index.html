@@ -1806,7 +1806,7 @@
                     }, 10);
                 }, err => {
                     alert('Не удалось определить местоположение: ' + err.message);
-                }, { enableHighAccuracy: false, timeout: 30000, maximumAge: 300000 });
+                }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
             });
         }
 
@@ -1929,8 +1929,17 @@
                     let nearestStoreIndex = -1;
                     let minDistance = Infinity;
 
+                    // Используем сферическое расстояние Google, если доступно, иначе Haversine
                     stores.forEach((store, index) => {
-                        const distance = calculateDistance(userLat, userLng, store.lat, store.lng);
+                        let distance;
+                        if (google && google.maps && google.maps.geometry && google.maps.geometry.spherical) {
+                            distance = google.maps.geometry.spherical.computeDistanceBetween(
+                                new google.maps.LatLng(userLat, userLng),
+                                new google.maps.LatLng(store.lat, store.lng)
+                            ) / 1000; // в км
+                        } else {
+                            distance = calculateDistance(userLat, userLng, store.lat, store.lng);
+                        }
                         if (distance < minDistance) {
                             minDistance = distance;
                             nearestStore = store;
@@ -1939,7 +1948,7 @@
                     });
 
                     if (nearestStore) {
-                        const distanceKm = minDistance.toFixed(1);
+                        const distanceKm = (Math.round(minDistance * 10) / 10).toFixed(1);
                         currentRoute = {
                             from: { lat: userLat, lng: userLng },
                             to: { lat: nearestStore.lat, lng: nearestStore.lng }
@@ -1970,19 +1979,22 @@
                                 animation: google.maps.Animation.DROP
                             });
 
-                            // Центрируем карту на середине между пользователем и магазином
-                            const bounds = new google.maps.LatLngBounds();
-                            bounds.extend({ lat: userLat, lng: userLng });
-                            bounds.extend({ lat: nearestStore.lat, lng: nearestStore.lng });
-                            map.fitBounds(bounds);
+                            // Плавно панорамируем к пользователю (чтобы визуально отследить исходную точку)
+                            const startCenter = map.getCenter();
+                            const targetCenter = new google.maps.LatLng(userLat, userLng);
+                            const steps = 30;
+                            let step = 0;
+                            const tween = setInterval(() => {
+                                step++;
+                                const t = step / steps;
+                                const lat = startCenter.lat() + (targetCenter.lat() - startCenter.lat()) * t;
+                                const lng = startCenter.lng() + (targetCenter.lng() - startCenter.lng()) * t;
+                                map.panTo({ lat, lng });
+                                if (step >= steps) clearInterval(tween);
+                            }, 10);
                             
-                            // Увеличиваем zoom через 500мс
-                            setTimeout(() => {
-                                const currentZoom = map.getZoom();
-                                if (currentZoom > 10) {
-                                    map.setZoom(10);
-                                }
-                            }, 500);
+                            // Мягко выставим комфортный zoom
+                            setTimeout(() => { if (map.getZoom() > 12) map.setZoom(12); }, 400);
 
                             // Открываем info window ближайшего магазина без автоцентрирования
                             setTimeout(() => {
@@ -1998,7 +2010,7 @@
                                 document.getElementById('storeName').textContent = nearestStore.name;
                                 document.getElementById('storeAddress').textContent = nearestStore.address;
                                 document.getElementById('storePhone').textContent = `📞 ${nearestStore.phone}`;
-                                document.getElementById('storeDistance').textContent = `📍 ${distanceKm} км от вас`;
+                                document.getElementById('storeDistance').textContent = `📍 ${distanceKm} км`;
                                 
                                 resultBlock.style.display = 'block';
                                 resultBlock.style.opacity = '0';
@@ -2010,7 +2022,7 @@
                                     resultBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                                 }, 300);
                             } else {
-                                alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км от вас`);
+                                alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км`);
                                 if (confirm('Открыть маршрут в Google Maps?')) {
                                     const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${nearestStore.lat},${nearestStore.lng}&travelmode=driving`;
                                     window.open(mapsUrl, '_blank');
@@ -2096,7 +2108,7 @@
 
     <!-- Google Maps API -->
     <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBfZfUf7ESlGLoJoBE3gMFEdyqCfePR7KQ&callback=initMap&libraries=places">
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBfZfUf7ESlGLoJoBE3gMFEdyqCfePR7KQ&callback=initMap&libraries=places,geometry">
     </script>
 </body>
 </html>
