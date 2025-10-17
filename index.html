@@ -271,7 +271,7 @@
             color: var(--silver);
         }
 
-        .feature-card p { display: block; }
+        .feature-card p { display: none; }
 
         /* Product Catalog */
         .catalog {
@@ -1489,6 +1489,8 @@
             if (featuresBlocks[1]) featuresBlocks[1].style.display = 'block';
 
             const modal = document.getElementById('productModal');
+            const modalCta = document.getElementById('modalCtaBtn');
+            if (modalCta) modalCta.style.display = 'inline-block'; // для товаров показываем CTA
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1545,6 +1547,14 @@
             if (featuresBlocks[1]) featuresBlocks[1].style.display = (features && features.length) ? 'block' : 'none';
 
             const modal = document.getElementById('productModal');
+            const modalCta = document.getElementById('modalCtaBtn');
+            if (modalCta) modalCta.style.display = 'none'; // для материалов/отзывов скрываем CTA
+            // Сделать модалку компактнее под контент материалов/отзывов
+            const modalContent = document.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.height = 'auto';
+                modalContent.style.maxHeight = '88vh';
+            }
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1578,7 +1588,7 @@
                     const title = (card.querySelector('h3') && card.querySelector('h3').textContent) || 'Материал';
                     const desc = (card.querySelector('p') && card.querySelector('p').textContent) || '';
                     const img = (card.querySelector('img') && card.querySelector('img').src) || '';
-                    openGenericModal(title, desc, img);
+                    openGenericModal(title, desc, img, [], []);
                 });
             });
 
@@ -2196,7 +2206,7 @@
                         <h4>Особенности:</h4>
                         <ul id="modalFeatures"></ul>
                     </div>
-                    <button class="modal-button" onclick="alert('Переход в магазин...')">НАЙТИ В МАГАЗИНЕ</button>
+                    <button class="modal-button" id="modalCtaBtn" onclick="alert('Переход в магазин...')">НАЙТИ В МАГАЗИНЕ</button>
                     <button class="modal-close-bottom" onclick="closeModal()">ЗАКРЫТЬ</button>
                 </div>
             </div>
