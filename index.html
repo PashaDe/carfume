@@ -1668,6 +1668,16 @@
                 draggable: true
             });
 
+            // Закрывать любые открытые окна описаний при начале перетаскивания/масштабировании
+            const closeAllInfoWindows = () => {
+                infoWindows.forEach(iw => iw.close());
+            };
+            map.addListener('dragstart', closeAllInfoWindows);
+            map.addListener('zoom_changed', closeAllInfoWindows);
+
+            // Кнопка "Где я?" (запрос геопозиции и показ синей точки)
+            addLocateControl(map);
+
             // Добавление маркеров для магазинов
             const boundsAll = new google.maps.LatLngBounds();
             stores.forEach((store, index) => {
@@ -1746,6 +1756,45 @@
             // Пробуем через Places API (не обязательно, т.к. ТЦ уже в stores)
             addPlaceByText('ТЦ Спектр, Минск, Беларусь', boundsAll);
             addPlaceByText('Dana Mall, Минск, Беларусь', boundsAll);
+        }
+
+        // Кастомная кнопка "Где я?" в правом верхнем углу
+        function addLocateControl(mapRef) {
+            const controlDiv = document.createElement('div');
+            const btn = document.createElement('button');
+            btn.textContent = 'Где я?';
+            btn.style.cssText = `
+                background: #fff; color:#000; border:1px solid #ccc; border-radius:8px;
+                padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer;
+                box-shadow:0 2px 6px rgba(0,0,0,0.3); margin:10px; 
+            `;
+            btn.onmouseenter = () => btn.style.background = '#f5f5f5';
+            btn.onmouseleave = () => btn.style.background = '#fff';
+            controlDiv.appendChild(btn);
+            mapRef.controls[google.maps.ControlPosition.TOP_RIGHT].push(controlDiv);
+
+            btn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    alert('❌ Геолокация не поддерживается вашим браузером.');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const userLat = pos.coords.latitude;
+                    const userLng = pos.coords.longitude;
+                    if (userMarker) userMarker.setMap(null);
+                    userMarker = new google.maps.Marker({
+                        position: { lat: userLat, lng: userLng },
+                        map: mapRef,
+                        title: 'Вы здесь',
+                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#4285F4', fillOpacity: 1, strokeColor: '#FFFFFF', strokeWeight: 2 }
+                    });
+                    // Покажем пользователя в центре карты с приятным масштабом
+                    mapRef.panTo({ lat: userLat, lng: userLng });
+                    if (mapRef.getZoom() < 12) mapRef.setZoom(12);
+                }, err => {
+                    alert('Не удалось определить местоположение: ' + err.message);
+                }, { enableHighAccuracy: false, timeout: 30000, maximumAge: 300000 });
+            });
         }
 
         // Функция для построения маршрута из info window
