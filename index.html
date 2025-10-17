@@ -271,7 +271,7 @@
             color: var(--silver);
         }
 
-        .feature-card p { display: none; }
+        .feature-card p { display: block; }
 
         /* Product Catalog */
         .catalog {
@@ -1892,6 +1892,13 @@
                         mapRef.panTo({ lat, lng });
                         if (i >= steps) {
                             clearInterval(anim);
+                            // Установим масштаб так, чтобы радиус области был ~30 км
+                            // Преобразуем радиус в степень масштаба (грубая аппроксимация для широты Беларуси)
+                            // Веб Меркатор: метры на пиксель зависят от зума. Возьмем комфортно: zoom ≈ 11 для ~30км области
+                            const targetZoom = 11; // 11-12 — видимый радиус около 30 км
+                            if (mapRef.getZoom() !== targetZoom) {
+                                mapRef.setZoom(targetZoom);
+                            }
                         }
                     }, 10);
                 }, err => {
