@@ -632,7 +632,8 @@
             }
 
             .section-title {
-                font-size: 36px;
+                font-size: 28px;
+                margin-bottom: 32px;
             }
 
             /* 3 карточки в ряд на мобильных */
@@ -645,6 +646,10 @@
                 grid-template-columns: repeat(3, 1fr);
                 gap: 16px;
             }
+            .steps-container { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+            .step-image { height: 100px; }
+            .step-number { width: 54px; height: 54px; font-size: 24px; margin-bottom: 12px; }
+            .testimonial-card { padding: 16px; }
 
             /* компактные карточки товара */
             .product-image { height: 140px; }
@@ -679,10 +684,16 @@
                 font-size: 32px;
             }
 
+            .section-title {
+                font-size: 22px;
+                margin-bottom: 24px;
+            }
+
             .products-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-            .features-grid,
-            .steps-container,
-            .testimonials-grid { grid-template-columns: 1fr; gap: 20px; }
+            .features-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+            .steps-container { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .testimonials-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .testimonial-card { padding: 12px; }
             .product-image { height: 120px; }
         }
 
