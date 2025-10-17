@@ -1788,9 +1788,22 @@
                         title: 'Вы здесь',
                         icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#4285F4', fillOpacity: 1, strokeColor: '#FFFFFF', strokeWeight: 2 }
                     });
-                    // Покажем пользователя в центре карты с приятным масштабом
-                    mapRef.panTo({ lat: userLat, lng: userLng });
-                    if (mapRef.getZoom() < 12) mapRef.setZoom(12);
+                    // Плавное перемещение к пользователю без резкого прыжка
+                    const target = { lat: userLat, lng: userLng };
+                    const start = mapRef.getCenter();
+                    const steps = 30; // ~300ms при 10ms интервале
+                    let i = 0;
+                    const interp = (a, b, t) => a + (b - a) * t;
+                    const anim = setInterval(() => {
+                        i++;
+                        const t = i / steps;
+                        const lat = interp(start.lat(), target.lat, t);
+                        const lng = interp(start.lng(), target.lng, t);
+                        mapRef.panTo({ lat, lng });
+                        if (i >= steps) {
+                            clearInterval(anim);
+                        }
+                    }, 10);
                 }, err => {
                     alert('Не удалось определить местоположение: ' + err.message);
                 }, { enableHighAccuracy: false, timeout: 30000, maximumAge: 300000 });
