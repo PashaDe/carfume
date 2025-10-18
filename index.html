@@ -737,6 +737,18 @@
             color: #C0C0C0 !important;
         }
 
+        /* Специальный стиль для кнопки "Найти ближайший магазин" */
+        #findStoreBtn {
+            background: linear-gradient(135deg, #C0C0C0, #F0F0F0, #C0C0C0);
+            color: #000 !important; /* перекрываем общий стиль cta */
+        }
+
+        /* Короткое затемнение при нажатии (500мс) */
+        #findStoreBtn.pressed-dark {
+            background: #000000;
+            color: #C0C0C0 !important;
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -2079,6 +2091,15 @@
         }
 
         function findNearestStore() {
+            // Визуальная обратная связь: на 500мс делаем кнопку тёмной
+            try {
+                const b = document.getElementById('findStoreBtn');
+                if (b) {
+                    b.classList.add('pressed-dark');
+                    setTimeout(() => b.classList.remove('pressed-dark'), 500);
+                }
+            } catch (_) {}
+
             const btn = document.getElementById('findStoreBtn');
             const resultBlock = document.getElementById('storeResult');
             const originalText = btn.innerHTML;
