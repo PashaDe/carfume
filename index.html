@@ -1854,7 +1854,20 @@
 
         // Кастомная кнопка "Где я?" в правом верхнем углу
         function addLocateControl(mapRef) {
-            // Кнопка "Где я?" временно отключена по запросу — не добавляем кастомный control
+            const controlDiv = document.createElement('div');
+            const btn = document.createElement('button');
+            btn.textContent = 'Где я?';
+            btn.setAttribute('aria-label', 'Где я?');
+            btn.style.cssText = `
+                background:#fff;color:#000;border:1px solid #ccc;border-radius:8px;
+                padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;
+                box-shadow:0 2px 6px rgba(0,0,0,0.3);margin:10px; user-select:none;
+            `;
+            btn.onmouseenter = () => btn.style.background = '#f5f5f5';
+            btn.onmouseleave = () => btn.style.background = '#fff';
+            controlDiv.appendChild(btn);
+            // Размещаем кнопку прямо над zoom (+/-) справа снизу
+            mapRef.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);
 
             btn.addEventListener('click', () => {
                 if (!navigator.geolocation) {
