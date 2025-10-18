@@ -2233,8 +2233,11 @@
                                 if (step >= steps) clearInterval(tween);
                             }, 10);
                             
-                            // Мягко выставим комфортный zoom
-                            setTimeout(() => { if (map.getZoom() > 12) map.setZoom(12); }, 400);
+                            // Мягко выставим комфортный zoom как в кнопке "Где я?"
+                            setTimeout(() => {
+                                const targetZoom = 11;
+                                if (map.getZoom() !== targetZoom) map.setZoom(targetZoom);
+                            }, 400);
 
                             // Открываем окно ближайшего магазина на карте с детальной разметкой
                             setTimeout(() => {
