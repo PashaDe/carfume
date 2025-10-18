@@ -1219,6 +1219,8 @@
                         <p style="color:#E0E0E0; font-size:18px; margin:0 0 15px 0; line-height:1.6;" id="storeAddress"></p>
                         <p style="color:#C0C0C0; font-size:16px; margin:0 0 15px 0;" id="storePhone"></p>
                         <p style="color:#F0F0F0; font-size:32px; font-weight:bold; margin:0; text-align:center; text-shadow:0 0 20px rgba(192,192,192,0.5);" id="storeDistance"></p>
+                        <p style="color:#C0C0C0; font-size:16px; margin:10px 0 0 0;" id="storeEtaDriving"></p>
+                        <p style="color:#C0C0C0; font-size:16px; margin:6px 0 0 0;" id="storeEtaWalking"></p>
                     </div>
                     <button onclick="openRoute()" class="cta-button" style="width:100%; margin-top:25px; background:linear-gradient(135deg, #C0C0C0, #F0F0F0, #C0C0C0); color:#000;">
                         🗺️ ПОСТРОИТЬ МАРШРУТ
@@ -2007,6 +2009,40 @@
             return R * c;
         }
 
+        // Расчёт ETA через Distance Matrix API (авто/пешком)
+        function getEta(origin, destination, travelMode) {
+            return new Promise(resolve => {
+                if (!google || !google.maps || !google.maps.DistanceMatrixService) {
+                    resolve(null);
+                    return;
+                }
+                const service = new google.maps.DistanceMatrixService();
+                service.getDistanceMatrix({
+                    origins: [origin],
+                    destinations: [destination],
+                    travelMode: travelMode,
+                    unitSystem: google.maps.UnitSystem.METRIC
+                }, (response, status) => {
+                    const ok = status === google.maps.DistanceMatrixStatus.OK;
+                    const el = ok && response && response.rows && response.rows[0] && response.rows[0].elements && response.rows[0].elements[0];
+                    if (ok && el && el.status === 'OK') {
+                        resolve({ durationText: el.duration.text, distanceText: el.distance.text });
+                    } else {
+                        resolve(null);
+                    }
+                });
+            });
+        }
+
+        function computeEtas(userLat, userLng, destLat, destLng) {
+            const origin = new google.maps.LatLng(userLat, userLng);
+            const dest = new google.maps.LatLng(destLat, destLng);
+            return Promise.all([
+                getEta(origin, dest, google.maps.TravelMode.DRIVING),
+                getEta(origin, dest, google.maps.TravelMode.WALKING)
+            ]).then(([driving, walking]) => ({ driving, walking }));
+        }
+
         function findNearestStore() {
             const btn = document.getElementById('findStoreBtn');
             const resultBlock = document.getElementById('storeResult');
@@ -2114,6 +2150,11 @@
                                 document.getElementById('storeAddress').textContent = nearestStore.address;
                                 document.getElementById('storePhone').textContent = `📞 ${nearestStore.phone}`;
                                 document.getElementById('storeDistance').textContent = `📍 ${distanceKm} км`;
+                                // Сброс ETA перед расчетом
+                                const etaDrivingEl = document.getElementById('storeEtaDriving');
+                                const etaWalkingEl = document.getElementById('storeEtaWalking');
+                                if (etaDrivingEl) etaDrivingEl.textContent = '🚗 Рассчитываем время в пути...';
+                                if (etaWalkingEl) etaWalkingEl.textContent = '🚶 Рассчитываем пешком...';
                                 
                                 resultBlock.style.display = 'block';
                                 resultBlock.style.opacity = '0';
@@ -2124,6 +2165,17 @@
                                 setTimeout(() => {
                                     resultBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                                 }, 300);
+
+                                // Асинхронно считаем ETA и дописываем в блок
+                                computeEtas(userLat, userLng, nearestStore.lat, nearestStore.lng)
+                                    .then(({ driving, walking }) => {
+                                        if (etaDrivingEl && driving) etaDrivingEl.textContent = `🚗 На авто: ${driving.durationText} (${driving.distanceText})`;
+                                        if (etaWalkingEl && walking) etaWalkingEl.textContent = `🚶 Пешком: ${walking.durationText} (${walking.distanceText})`;
+                                    })
+                                    .catch(() => {
+                                        if (etaDrivingEl) etaDrivingEl.textContent = '';
+                                        if (etaWalkingEl) etaWalkingEl.textContent = '';
+                                    });
                             } else {
                                 alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км`);
                                 if (confirm('Открыть маршрут в Google Maps?')) {
