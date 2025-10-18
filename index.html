@@ -1651,7 +1651,6 @@
         let infoWindows = [];
         let userMarker = null;
         let currentRoute = null;
-        let storeIcon = null; // серебристая иконка маркера
 
         // Все магазины/точки продаж CarFume (включая ТЦ в Минске)
         const stores = [
@@ -1661,7 +1660,8 @@
             { name: 'Витебск', address: 'ТЦ "Марко Сити", пр-т Фрунзе, 11', lat: 55.1904, lng: 30.2049, phone: '+375 29 456-78-90' },
             { name: 'Гродно', address: 'ТЦ "Тринити", ул. Горького, 65', lat: 53.6884, lng: 23.8258, phone: '+375 29 567-89-01' },
             { name: 'Могилев', address: 'ТЦ "Атриум", пр-т Мира, 32', lat: 53.9007, lng: 30.3313, phone: '+375 29 678-90-12' },
-            { name: 'ТЦ Спектр (Минск)', address: 'пр-т Дзержинского, 104, Минск', lat: 53.8583, lng: 27.4854, phone: '+375 29 000-00-00' },
+            // Исправление адреса ТЦ Спектр
+            { name: 'ТЦ Спектр (Минск)', address: 'пр-т Независимости, 179, Минск', query: 'ТЦ Спектр, проспект Независимости 179, Минск', lat: null, lng: null, phone: '+375 29 000-00-00' },
             { name: 'Dana Mall (Минск)', address: 'ул. Петра Мстиславца, 11, Минск', lat: 53.9316, lng: 27.6526, phone: '+375 29 000-00-01' }
         ];
 
@@ -1774,16 +1774,7 @@
                 draggable: true
             });
 
-            // Серебристая иконка маркера (в стиле сайта)
-            storeIcon = {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 7,
-                fillColor: '#C0C0C0',
-                fillOpacity: 1,
-                strokeColor: '#1a1a1a',
-                strokeOpacity: 1,
-                strokeWeight: 1.5
-            };
+            // Используем стандартные красные маркеры Google для точек продаж
 
             // Закрывать любые открытые окна описаний при начале перетаскивания/масштабировании
             const closeAllInfoWindows = () => {
@@ -1797,65 +1788,48 @@
 
             // Добавление маркеров для магазинов
             const boundsAll = new google.maps.LatLngBounds();
+            const service = new google.maps.places.PlacesService(map);
             stores.forEach((store, index) => {
-                console.log(`📌 Добавляю маркер: ${store.name}`, store.lat, store.lng);
-                const marker = new google.maps.Marker({
-                    position: { lat: store.lat, lng: store.lng },
-                    map: map,
-                    title: store.name,
-                    icon: storeIcon,
-                    animation: google.maps.Animation.DROP
-                });
+                const createMarker = (lat, lng) => {
+                    const marker = new google.maps.Marker({
+                        position: { lat, lng },
+                        map: map,
+                        title: store.name,
+                        animation: google.maps.Animation.DROP
+                    });
+                    boundsAll.extend({ lat, lng });
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div style="font-family: Arial, sans-serif; padding: 10px; min-width: 250px;">
+                                <h3 style="margin: 0 0 10px 0; color: #000; font-size: 18px; font-weight: bold;">${store.name}</h3>
+                                <p style="margin: 5px 0; color: #333; font-size: 14px;">📍 ${store.address}</p>
+                                <p style="margin: 5px 0; color: #333; font-size: 14px;">📞 ${store.phone}</p>
+                                <button onclick="openRouteFromMap(${lat}, ${lng})" style="margin-top:10px;padding:10px 20px;background:linear-gradient(135deg,#C0C0C0,#F0F0F0);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:bold;font-size:14px;width:100%;transition:all .3s ease;">🗺️ ПОСТРОИТЬ МАРШРУТ</button>
+                            </div>`
+                    });
+                    marker.addListener('click', () => {
+                        infoWindows.forEach(iw => iw.close());
+                        infoWindow.open(map, marker);
+                    });
+                    markers.push(marker);
+                    infoWindows.push(infoWindow);
+                };
 
-                // Включаем точку в общий bounding box
-                boundsAll.extend({ lat: store.lat, lng: store.lng });
-
-                // Info Window с информацией о магазине
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `
-                        <div style="font-family: Arial, sans-serif; padding: 10px; min-width: 250px;">
-                            <h3 style="margin: 0 0 10px 0; color: #000; font-size: 18px; font-weight: bold;">
-                                ${store.name}
-                            </h3>
-                            <p style="margin: 5px 0; color: #333; font-size: 14px;">
-                                📍 ${store.address}
-                            </p>
-                            <p style="margin: 5px 0; color: #333; font-size: 14px;">
-                                📞 ${store.phone}
-                            </p>
-                            <button 
-                                onclick="openRouteFromMap(${store.lat}, ${store.lng})" 
-                                style="
-                                    margin-top: 10px;
-                                    padding: 10px 20px;
-                                    background: linear-gradient(135deg, #C0C0C0, #F0F0F0);
-                                    color: #000;
-                                    border: none;
-                                    border-radius: 8px;
-                                    cursor: pointer;
-                                    font-weight: bold;
-                                    font-size: 14px;
-                                    width: 100%;
-                                    transition: all 0.3s ease;
-                                "
-                                onmouseover="this.style.transform='scale(1.05)'"
-                                onmouseout="this.style.transform='scale(1)'"
-                            >
-                                🗺️ ПОСТРОИТЬ МАРШРУТ
-                            </button>
-                        </div>
-                    `
-                });
-
-                marker.addListener('click', () => {
-                    // Закрываем все открытые info windows
-                    infoWindows.forEach(iw => iw.close());
-                    // Открываем текущий
-                    infoWindow.open(map, marker);
-                });
-
-                markers.push(marker);
-                infoWindows.push(infoWindow);
+                if (store.lat != null && store.lng != null) {
+                    createMarker(store.lat, store.lng);
+                } else {
+                    const query = store.query || `${store.name}, ${store.address}`;
+                    service.textSearch({ query, region: 'by', language: 'ru' }, (results, status) => {
+                        if (status === google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
+                            const pos = results[0].geometry.location;
+                            store.lat = pos.lat();
+                            store.lng = pos.lng();
+                            createMarker(store.lat, store.lng);
+                        } else {
+                            console.warn('Не найден объект по запросу:', query);
+                        }
+                    });
+                }
             });
 
             // Подгоняем карту сразу по всем магазинам
