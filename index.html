@@ -512,6 +512,10 @@
             border-radius: 15px;
         }
 
+        /* Убираем кнопку Google, которая располагается над zoom (+ -): fullscreen/прочие */
+        .gm-fullscreen-control { display: none !important; }
+        .gm-svpc { display: none !important; } /* Street View (пегман) */
+
 
         .cta-center {
             text-align: center;
@@ -1864,7 +1868,8 @@
             btn.onmouseenter = () => { btn.style.background = '#f5f5f5'; };
             btn.onmouseleave = () => { btn.style.background = '#fff'; };
             controlDiv.appendChild(btn);
-            mapRef.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(controlDiv);
+            // Размещаем кнопку ровно над zoom-контролами, справа внизу
+            mapRef.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(controlDiv);
 
             btn.addEventListener('click', () => {
                 if (!navigator.geolocation) {
