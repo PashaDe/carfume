@@ -690,6 +690,25 @@
                 padding: 15px 40px;
                 font-size: 14px;
             }
+
+            /* Выпадающее меню справа на половину экрана */
+            .nav-links.mobile-open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                width: 50vw;
+                background: rgba(0, 0, 0, 0.98);
+                padding: 20px;
+                border: 2px solid #C0C0C0; /* серебристый контур */
+                border-top: none;
+                text-align: right;
+                align-items: flex-end;
+                gap: 16px;
+            }
+            .nav-links.mobile-open li,
+            .nav-links.mobile-open a { width: 100%; text-align: right; }
         }
 
         @media (max-width: 480px) {
@@ -1625,17 +1644,13 @@
                 toggle.addEventListener('click', function() {
                     const navLinks = document.querySelector('.nav-links');
                     if (!navLinks) return;
-                    if (navLinks.style.display === 'flex') {
+                    const opened = navLinks.classList.contains('mobile-open');
+                    if (opened) {
+                        navLinks.classList.remove('mobile-open');
                         navLinks.style.display = 'none';
                     } else {
                         navLinks.style.display = 'flex';
-                        navLinks.style.flexDirection = 'column';
-                        navLinks.style.position = 'absolute';
-                        navLinks.style.top = '100%';
-                        navLinks.style.left = '0';
-                        navLinks.style.right = '0';
-                        navLinks.style.background = 'rgba(0, 0, 0, 0.98)';
-                        navLinks.style.padding = '20px';
+                        navLinks.classList.add('mobile-open');
                     }
                 });
             }
