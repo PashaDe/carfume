@@ -1939,11 +1939,11 @@
             if (userMarker) {
                 const userPos = userMarker.getPosition();
                 const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userPos.lat()},${userPos.lng()}&destination=${destLat},${destLng}&travelmode=driving`;
-                window.open(mapsUrl, '_blank');
+                window.location.href = mapsUrl;
             } else {
                 // Если нет геолокации, просто открываем маршрут до магазина
                 const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
-                window.open(mapsUrl, '_blank');
+                window.location.href = mapsUrl;
             }
         };
 
@@ -2293,7 +2293,7 @@
         function openRoute() {
             if (currentRoute) {
                 const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${currentRoute.from.lat},${currentRoute.from.lng}&destination=${currentRoute.to.lat},${currentRoute.to.lng}&travelmode=driving`;
-                window.open(mapsUrl, '_blank');
+                window.location.href = mapsUrl;
             }
         }
     </script>
