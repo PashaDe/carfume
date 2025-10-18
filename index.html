@@ -2212,11 +2212,7 @@
                                         if (etaDrivingEl) etaDrivingEl.textContent = '';
                                     });
                             } else {
-                                alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км`);
-                                if (confirm('Открыть маршрут в Google Maps?')) {
-                                    const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${nearestStore.lat},${nearestStore.lng}&travelmode=driving`;
-                                    window.open(mapsUrl, '_blank');
-                                }
+                                // Не показываем никаких диалоговых окон — вся информация показана в окне на карте
                             }
 
                             btn.innerHTML = '✅ Готово!';
