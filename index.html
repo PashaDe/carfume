@@ -623,6 +623,11 @@
             flex-direction: column;
             gap: 5px;
             cursor: pointer;
+            padding: 12px;              /* увеличиваем зону касания */
+            min-width: 44px;             /* рекомендации по доступности */
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;  /* исключаем задержки тапа */
         }
 
         .mobile-menu-toggle span {
@@ -631,6 +636,9 @@
             background: var(--silver);
             transition: all 0.3s ease;
         }
+
+        /* Делает клики по любому месту бургер-блока: события идут на контейнер */
+        .mobile-menu-toggle * { pointer-events: none; }
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -1648,7 +1656,7 @@
 
             const toggle = document.querySelector('.mobile-menu-toggle');
             if (toggle) {
-                toggle.addEventListener('click', function() {
+                const handler = function() {
                     const navLinks = document.querySelector('.nav-links');
                     if (!navLinks) return;
                     const opened = navLinks.classList.contains('mobile-open');
@@ -1659,7 +1667,9 @@
                         navLinks.style.display = 'flex';
                         navLinks.classList.add('mobile-open');
                     }
-                });
+                };
+                toggle.addEventListener('click', handler);
+                toggle.addEventListener('touchstart', handler, { passive: true });
             }
 
             // Smooth scroll для якорей: корректный скролл к карте с учётом фиксированного меню
