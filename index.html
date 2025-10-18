@@ -742,6 +742,12 @@
                 border-radius: 8px;
             }
             .nav-links.mobile-open a:active { background: rgba(255,255,255,0.06); }
+
+            /* Materials cards: fit content inside cards on mobile without changing card size */
+            .features-grid { gap: 12px; }
+            .feature-icon { width: 80px; height: 80px; margin: 0 auto 6px; }
+            .feature-card h3 { font-size: 13px; line-height: 1.1; }
+            .material-line { white-space: nowrap; }
         }
 
         @media (max-width: 480px) {
@@ -755,11 +761,15 @@
             }
 
             .products-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-            .features-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+            .features-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .steps-container { grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .testimonials-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .testimonial-card { padding: 12px; }
             .product-image { height: 120px; }
+
+            /* Materials cards tighter on very small screens */
+            .feature-icon { width: 68px; height: 68px; margin: 0 auto 4px; }
+            .feature-card h3 { font-size: 12px; }
         }
 
         /* Force silver colors - высший приоритет */
