@@ -602,9 +602,10 @@
             }
         }
 
+        /* Fallback: по умолчанию контент виден даже без JS-анимаций */
         .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
+            opacity: 1;
+            transform: translateY(0);
             transition: all 0.8s ease;
         }
 
@@ -1344,17 +1345,22 @@
             rootMargin: '0px 0px -50px 0px'
         };
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
+        try {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
 
-        document.querySelectorAll('.fade-in').forEach(el => {
-            observer.observe(el);
-        });
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        } catch (e) {
+            // Если IntersectionObserver недоступен, показываем элементы сразу
+            document.querySelectorAll('.fade-in').forEach(el => el.classList.add('visible'));
+        }
 
         // Navbar scroll effect
         window.addEventListener('scroll', () => {
