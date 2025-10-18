@@ -1659,7 +1659,8 @@
 
             const toggle = document.querySelector('.mobile-menu-toggle');
             if (toggle) {
-                const handler = function() {
+                const handler = function(e) {
+                    e.preventDefault(); // предотвращаем последующий клик после тапа
                     const navLinks = document.querySelector('.nav-links');
                     if (!navLinks) return;
                     const opened = navLinks.classList.contains('mobile-open');
@@ -1671,8 +1672,8 @@
                         navLinks.classList.add('mobile-open');
                     }
                 };
-                toggle.addEventListener('click', handler);
-                toggle.addEventListener('touchstart', handler, { passive: true });
+                // Используем единый pointerdown, чтобы не было двойного срабатывания (touchstart + click)
+                toggle.addEventListener('pointerdown', handler, { passive: false });
             }
 
             // Smooth scroll для якорей: корректный скролл к карте с учётом фиксированного меню
