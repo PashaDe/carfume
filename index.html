@@ -2183,28 +2183,18 @@
                             // Мягко выставим комфортный zoom
                             setTimeout(() => { if (map.getZoom() > 12) map.setZoom(12); }, 400);
 
-                            // Открываем info window ближайшего магазина и подменяем контент на верстку "Ближайший"
+                            // Открываем стандартное info window ближайшего магазина (как было),
+                            // а расчёт ETA ведем отдельно и выводим под картой
                             setTimeout(() => {
                                 infoWindows.forEach(iw => iw.close());
-                                // Временно показываем окно, затем асинхронно подставим ETA
-                                const iw = infoWindows[nearestStoreIndex];
-                                if (iw) {
-                                    iw.setContent(renderNearestInfo(nearestStore, null, null));
-                                    iw.open(map, markers[nearestStoreIndex]);
-                                    // Рассчитываем ETA и обновляем контент
-                                    computeEtas(userLat, userLng, nearestStore.lat, nearestStore.lng)
-                                        .then(({ driving, walking }) => {
-                                            iw.setContent(renderNearestInfo(nearestStore, walking, driving));
-                                        })
-                                        .catch(() => {/* ignore */});
-                                }
+                                infoWindows[nearestStoreIndex].open(map, markers[nearestStoreIndex]);
                             }, 800);
 
                             console.log('🗺️ Карта обновлена: открыто окно магазина (без автоцентрирования)', nearestStore.name);
                         }
 
                         try {
-                            if (false && resultBlock && document.getElementById('storeName')) {
+                            if (resultBlock && document.getElementById('storeName')) {
                                 document.getElementById('storeName').textContent = nearestStore.name;
                                 document.getElementById('storeAddress').textContent = nearestStore.address;
                                 document.getElementById('storePhone').textContent = `📞 ${nearestStore.phone}`;
@@ -2228,12 +2218,12 @@
                                 // Асинхронно считаем ETA и дописываем в блок
                                 computeEtas(userLat, userLng, nearestStore.lat, nearestStore.lng)
                                     .then(({ driving, walking }) => {
-                                        if (etaDrivingEl && driving) etaDrivingEl.textContent = `🚗 На авто: ${driving.durationText} (${driving.distanceText})`;
                                         if (etaWalkingEl && walking) etaWalkingEl.textContent = `🚶 Пешком: ${walking.durationText} (${walking.distanceText})`;
+                                        if (etaDrivingEl && driving) etaDrivingEl.textContent = `🚗 На авто: ${driving.durationText} (${driving.distanceText})`;
                                     })
                                     .catch(() => {
-                                        if (etaDrivingEl) etaDrivingEl.textContent = '';
                                         if (etaWalkingEl) etaWalkingEl.textContent = '';
+                                        if (etaDrivingEl) etaDrivingEl.textContent = '';
                                     });
                             } else {
                                 alert(`🎯 БЛИЖАЙШИЙ МАГАЗИН\n\n🏪 ${nearestStore.name}\n📍 ${nearestStore.address}\n📞 ${nearestStore.phone}\n\n📏 Расстояние: ${distanceKm} км`);
