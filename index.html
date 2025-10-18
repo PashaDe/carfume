@@ -275,12 +275,13 @@
             font-size: 16px; /* уменьшили заголовок */
             margin-bottom: 6px;
             color: var(--silver);
-            word-break: break-word;
-            overflow-wrap: anywhere;
+            word-break: normal;       /* не разбиваем слова */
+            overflow-wrap: normal;     /* не переносим слова */
+            text-align: center;
         }
 
         /* Строки заголовка материалов по одному слову в строке */
-        .material-line { display: block; }
+        .material-line { display: block; white-space: nowrap; }
 
         .feature-card p { display: none; }
 
