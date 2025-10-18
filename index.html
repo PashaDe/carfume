@@ -1642,6 +1642,7 @@
         let infoWindows = [];
         let userMarker = null;
         let currentRoute = null;
+        let storeIcon = null; // серебристая иконка маркера
 
         // Все магазины/точки продаж CarFume (включая ТЦ в Минске)
         const stores = [
@@ -1764,6 +1765,17 @@
                 draggable: true
             });
 
+            // Серебристая иконка маркера (в стиле сайта)
+            storeIcon = {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 7,
+                fillColor: '#C0C0C0',
+                fillOpacity: 1,
+                strokeColor: '#1a1a1a',
+                strokeOpacity: 1,
+                strokeWeight: 1.5
+            };
+
             // Закрывать любые открытые окна описаний при начале перетаскивания/масштабировании
             const closeAllInfoWindows = () => {
                 infoWindows.forEach(iw => iw.close());
@@ -1782,6 +1794,7 @@
                     position: { lat: store.lat, lng: store.lng },
                     map: map,
                     title: store.name,
+                    icon: storeIcon,
                     animation: google.maps.Animation.DROP
                 });
 
@@ -1969,7 +1982,8 @@
         // Резервное добавление маркера по координатам
         function addFallbackMarker(place, boundsAll) {
             const pos = new google.maps.LatLng(place.lat, place.lng);
-            const marker = new google.maps.Marker({ map, position: pos, title: place.name, animation: google.maps.Animation.DROP });
+            const marker = new google.maps.Marker({ map, position: pos, title: place.name, icon: storeIcon, animation: google.maps.Animation.DROP });
+            const marker = new google.maps.Marker({ map, position: pos, title: place.name, icon: storeIcon, animation: google.maps.Animation.DROP });
             const infoWindow = new google.maps.InfoWindow({
                 content: `
                     <div style="font-family: Arial, sans-serif; padding: 10px; min-width: 260px;">
@@ -2041,6 +2055,34 @@
                 getEta(origin, dest, google.maps.TravelMode.DRIVING),
                 getEta(origin, dest, google.maps.TravelMode.WALKING)
             ]).then(([driving, walking]) => ({ driving, walking }));
+        }
+
+        // Рендер содержимого InfoWindow для ближайшего магазина
+        function renderNearestInfo(store, walking, driving) {
+            const walkingText = walking ? `🚶 Пешком: ${walking.durationText} (${walking.distanceText})` : '🚶 Рассчитываем пешком...';
+            const drivingText = driving ? `🚗 На авто: ${driving.durationText} (${driving.distanceText})` : '🚗 Рассчитываем время в пути...';
+            return `
+                <div style="font-family: Arial, sans-serif; padding: 10px; min-width: 260px;">
+                    <div style="font-size:12px; font-weight:700; color:#666; letter-spacing: .5px; text-transform:uppercase; margin-bottom:4px;">Ближайший</div>
+                    <h3 style="margin: 0 0 8px 0; color: #000; font-size: 18px; font-weight: bold;">${store.name}</h3>
+                    <p style="margin: 4px 0; color: #333; font-size: 14px;">📍 ${store.address}</p>
+                    <p style="margin: 4px 0; color: #333; font-size: 14px;">📞 ${store.phone}</p>
+                    <p style="margin: 6px 0 0 0; color:#111; font-size: 14px;">${walkingText}</p>
+                    <p style="margin: 2px 0 10px 0; color:#111; font-size: 14px;">${drivingText}</p>
+                    <button 
+                        onclick="openRouteFromMap(${store.lat}, ${store.lng})" 
+                        style="
+                            display:block; width:100%; margin-top: 2px; padding: 10px 16px;
+                            background: linear-gradient(135deg, #C0C0C0, #F0F0F0);
+                            color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;
+                        "
+                        onmouseover="this.style.transform='scale(1.02)'"
+                        onmouseout="this.style.transform='scale(1)'"
+                    >
+                        <span style="display:inline-block; margin-right:6px;">↪️</span>ПОСТРОИТЬ МАРШРУТ
+                    </button>
+                </div>
+            `;
         }
 
         function findNearestStore() {
@@ -2135,17 +2177,28 @@
                             // Мягко выставим комфортный zoom
                             setTimeout(() => { if (map.getZoom() > 12) map.setZoom(12); }, 400);
 
-                            // Открываем info window ближайшего магазина без автоцентрирования
+                            // Открываем info window ближайшего магазина и подменяем контент на верстку "Ближайший"
                             setTimeout(() => {
                                 infoWindows.forEach(iw => iw.close());
-                                infoWindows[nearestStoreIndex].open(map, markers[nearestStoreIndex]);
+                                // Временно показываем окно, затем асинхронно подставим ETA
+                                const iw = infoWindows[nearestStoreIndex];
+                                if (iw) {
+                                    iw.setContent(renderNearestInfo(nearestStore, null, null));
+                                    iw.open(map, markers[nearestStoreIndex]);
+                                    // Рассчитываем ETA и обновляем контент
+                                    computeEtas(userLat, userLng, nearestStore.lat, nearestStore.lng)
+                                        .then(({ driving, walking }) => {
+                                            iw.setContent(renderNearestInfo(nearestStore, walking, driving));
+                                        })
+                                        .catch(() => {/* ignore */});
+                                }
                             }, 800);
 
                             console.log('🗺️ Карта обновлена: открыто окно магазина (без автоцентрирования)', nearestStore.name);
                         }
 
                         try {
-                            if (resultBlock && document.getElementById('storeName')) {
+                            if (false && resultBlock && document.getElementById('storeName')) {
                                 document.getElementById('storeName').textContent = nearestStore.name;
                                 document.getElementById('storeAddress').textContent = nearestStore.address;
                                 document.getElementById('storePhone').textContent = `📞 ${nearestStore.phone}`;
