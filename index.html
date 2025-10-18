@@ -427,13 +427,14 @@
 
         .testimonials-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* как у каталога */
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* компактнее, чтобы не вылезать за фон */
             gap: 20px;
             margin-top: 32px;
             max-width: 1400px;
             margin-left: auto;
             margin-right: auto;
             width: 100%;
+            box-sizing: border-box;
         }
 
         .testimonial-card {
@@ -443,6 +444,8 @@
             position: relative;
             transition: all 0.3s ease;
             cursor: pointer;
+            width: 100%;
+            max-width: 100%;
         }
 
         .testimonial-card:hover {
