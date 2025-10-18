@@ -105,7 +105,10 @@
             justify-content: center;
             padding: 30px 40px; /* компактнее вертикальные отступы (≈ в 2 раза меньше) */
             position: relative;
+            border-top: 1px solid rgba(192, 192, 192, 0.35); /* временная тонкая серебристая полоска между блоками */
         }
+
+        section:first-of-type { border-top: none; }
 
         .container {
             max-width: 1400px;
