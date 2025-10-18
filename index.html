@@ -447,6 +447,7 @@
             margin-bottom: 10px;
             line-height: 1.6;
             display: -webkit-box;
+            line-clamp: 2; /* standard property for compatibility */
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
@@ -1988,7 +1989,6 @@
         // Резервное добавление маркера по координатам
         function addFallbackMarker(place, boundsAll) {
             const pos = new google.maps.LatLng(place.lat, place.lng);
-            const marker = new google.maps.Marker({ map, position: pos, title: place.name, icon: storeIcon, animation: google.maps.Animation.DROP });
             const marker = new google.maps.Marker({ map, position: pos, title: place.name, icon: storeIcon, animation: google.maps.Animation.DROP });
             const infoWindow = new google.maps.InfoWindow({
                 content: `
