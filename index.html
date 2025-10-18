@@ -2159,18 +2159,28 @@
                             // Мягко выставим комфортный zoom
                             setTimeout(() => { if (map.getZoom() > 12) map.setZoom(12); }, 400);
 
-                            // Открываем стандартное info window ближайшего магазина (как было),
-                            // а расчёт ETA ведем отдельно и выводим под картой
+                            // Открываем окно ближайшего магазина на карте с детальной разметкой
                             setTimeout(() => {
                                 infoWindows.forEach(iw => iw.close());
-                                infoWindows[nearestStoreIndex].open(map, markers[nearestStoreIndex]);
+                                const iw = infoWindows[nearestStoreIndex];
+                                if (iw) {
+                                    // Показать заглушку без ETA
+                                    iw.setContent(renderNearestInfo(nearestStore, null, null));
+                                    iw.open(map, markers[nearestStoreIndex]);
+                                    // Досчитать ETA и обновить контент
+                                    computeEtas(userLat, userLng, nearestStore.lat, nearestStore.lng)
+                                        .then(({ driving, walking }) => {
+                                            iw.setContent(renderNearestInfo(nearestStore, walking, driving));
+                                        })
+                                        .catch(() => {/* ignore */});
+                                }
                             }, 800);
 
                             console.log('🗺️ Карта обновлена: открыто окно магазина (без автоцентрирования)', nearestStore.name);
                         }
 
                         try {
-                            if (resultBlock && document.getElementById('storeName')) {
+                            if (false && resultBlock && document.getElementById('storeName')) {
                                 document.getElementById('storeName').textContent = nearestStore.name;
                                 document.getElementById('storeAddress').textContent = nearestStore.address;
                                 document.getElementById('storePhone').textContent = `📞 ${nearestStore.phone}`;
