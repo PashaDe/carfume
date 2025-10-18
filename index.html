@@ -214,10 +214,11 @@
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* не шире, чем остальные блоки */
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* жёстко в рамках контейнера */
             align-items: start;
             gap: 20px;
             margin-top: 24px;
+            max-width: 100%;
         }
 
         .feature-card {
