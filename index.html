@@ -138,6 +138,7 @@
             margin-bottom: 30px;
             color: var(--silver);
             text-shadow: 2px 2px 20px rgba(192, 192, 192, 0.5);
+            transition: transform 0.6s ease; /* headline moves up half speed */
         }
 
         .hero .subheading {
@@ -664,10 +665,7 @@
                 font-size: 42px;
             }
 
-            .hero .subheading {
-                font-size: 18px;
-                margin-bottom: 30px;
-            }
+            .hero .subheading { font-size: 18px; margin-bottom: 30px; transition: transform 0.6s ease; }
 
             .section-title {
                 font-size: 28px;
@@ -775,63 +773,63 @@
         /* Show only the landing (hero) section by default */
         section:not(.hero) { display: none; }
 
-        /* Mobile slide-up clouds (sections preview) */
+        /* Mobile slide-up ellipses (sections preview) */
         .clouds {
-            position: fixed;
+            position: absolute; /* inside hero */
             left: 0;
             right: 0;
             bottom: 0;
             z-index: 900;
-            transform: translateY(110%);
-            transition: transform 0.35s ease;
-            pointer-events: none; /* enable only on visible */
+            transform: translateY(100%);
+            transition: transform 0.6s ease;
+            pointer-events: none;
         }
         .clouds.visible { transform: translateY(0); pointer-events: auto; }
         .clouds-inner {
-            max-width: 1400px;
-            margin: 0 auto 10px;
-            padding: 0 12px;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 16px 14px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 16px;
+            align-items: end; /* baseline stagger will be via translateY */
         }
         .cloud-card {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            display: block;
             background: linear-gradient(135deg, #C0C0C0, #F0F0F0, #C0C0C0);
             color: #000;
             border: none;
-            border-radius: 18px 18px 0 0;
-            padding: 10px;
+            border-radius: 999px; /* ellipse */
+            padding: 8px;
             cursor: pointer;
-            box-shadow: 0 8px 30px rgba(192, 192, 192, 0.35);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 12px 40px rgba(192, 192, 192, 0.35);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
-        .cloud-card:active { transform: translateY(2px); box-shadow: 0 4px 20px rgba(192,192,192,0.35); }
-        .cloud-title {
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-size: 12px;
-            text-align: center;
-        }
-        .cloud-previews {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-        .cloud-previews .thumb {
+        .cloud-card:active { transform: translateY(2px) scale(0.98); box-shadow: 0 8px 30px rgba(192,192,192,0.35); }
+        .cloud-ellipse {
             width: 100%;
-            aspect-ratio: 1/1;
-            border-radius: 10px;
-            background: rgba(0,0,0,0.08);
+            height: 90px; /* horizontal ellipse height */
+            border-radius: 999px;
             overflow: hidden;
+            background: rgba(0,0,0,0.06);
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .cloud-previews img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .cloud-ellipse .thumb, .cloud-ellipse iframe { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; }
+        .cloud-label {
+            margin-top: 6px;
+            text-align: center;
+            color: #C0C0C0;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        /* staggered heights: right highest, left next, center lowest */
+        .cloud-card[data-pos="right"] { transform: translateY(-40px); }
+        .cloud-card[data-pos="left"] { transform: translateY(-24px); }
+        .cloud-card[data-pos="center"] { transform: translateY(0); }
 
         /* Modal custom content area */
         .modal-custom {
@@ -1157,17 +1155,23 @@
     <!-- Slide-up Clouds (mobile previews) -->
     <div class="clouds" id="clouds">
         <div class="clouds-inner">
-            <div class="cloud-card" data-cloud="catalog">
-                <div class="cloud-title">Каталог</div>
-                <div class="cloud-previews" id="cloudCatalog"></div>
+            <div class="cloud-card" data-cloud="catalog" data-pos="left">
+                <div class="cloud-ellipse">
+                    <img class="thumb" id="cloudCatalogImg" src="" alt="catalog" />
+                </div>
+                <div class="cloud-label">Каталог</div>
             </div>
-            <div class="cloud-card" data-cloud="about">
-                <div class="cloud-title">О продукте</div>
-                <div class="cloud-previews" id="cloudAbout"></div>
+            <div class="cloud-card" data-cloud="about" data-pos="center">
+                <div class="cloud-ellipse">
+                    <img class="thumb" id="cloudAboutImg" src="" alt="about" />
+                </div>
+                <div class="cloud-label">О продукте</div>
             </div>
-            <div class="cloud-card" data-cloud="buy">
-                <div class="cloud-title">Где купить</div>
-                <div class="cloud-previews" id="cloudBuy"></div>
+            <div class="cloud-card" data-cloud="buy" data-pos="right">
+                <div class="cloud-ellipse">
+                    <div class="thumb" id="cloudBuyPreview" style="width:100%;height:100%;"></div>
+                </div>
+                <div class="cloud-label">Где купить</div>
             </div>
         </div>
     </div>
@@ -1421,40 +1425,7 @@
         </div>
     </section>
 
-    <!-- 7. Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>О CARFUME</h3>
-                <p>Премиальные деревянные ароматизаторы для автомобилей. Натуральные материалы, эксклюзивные композиции, европейское качество.</p>
-            </div>
-            <div class="footer-section">
-                <h3>КОНТАКТЫ</h3>
-                <a href="tel:+375291234567">+375 (29) 123-45-67</a>
-                <a href="mailto:info@carfume.by">info@carfume.by</a>
-                <p>Минск, Беларусь</p>
-            </div>
-            <div class="footer-section">
-                <h3>ИНФОРМАЦИЯ</h3>
-                <a href="#">Доставка и оплата</a>
-                <a href="#">Гарантии</a>
-                <a href="#">Сотрудничество</a>
-                <a href="#">Политика конфиденциальности</a>
-            </div>
-            <div class="footer-section">
-                <h3>СОЦИАЛЬНЫЕ СЕТИ</h3>
-                <div class="social-links">
-                    <a href="#">📘</a>
-                    <a href="#">📷</a>
-                    <a href="#">✈️</a>
-                    <a href="#">▶️</a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 CarFume. Все права защищены. Создано с любовью к деталям.</p>
-        </div>
-    </footer>
+    <!-- Footer removed per request -->
 
     <script>
         // ===== НАСТРОЙКИ ФОНОВЫХ ТЕКСТУР =====
@@ -1528,51 +1499,14 @@
                 }
             });
 
-            // Build clouds previews
+            // Build clouds previews (ellipses thumbnails)
             try {
-                const cloudCatalog = document.getElementById('cloudCatalog');
-                if (cloudCatalog) {
-                    const ids = [1,2,3,4,5,6];
-                    ids.forEach(id => {
-                        const div = document.createElement('div');
-                        div.className = 'thumb';
-                        const img = document.createElement('img');
-                        img.src = PRODUCT_IMAGES[id];
-                        img.alt = productData[id]?.name || 'item';
-                        div.appendChild(img);
-                        cloudCatalog.appendChild(div);
-                    });
-                }
-                const cloudAbout = document.getElementById('cloudAbout');
-                if (cloudAbout) {
-                    const aboutImgs = [
-                        'https://lh3.googleusercontent.com/d/1epVa2oRE7nviYRHZvjR8rbV7W-0uCAaJ',
-                        'https://lh3.googleusercontent.com/d/1AnSlz9GW3xOX6uvYArGTE-V_ODKoaPOg',
-                        'https://lh3.googleusercontent.com/d/1TdyFXe8LHIi1MhY-staABa97WhnpQD6S'
-                    ];
-                    aboutImgs.forEach(src => {
-                        const div = document.createElement('div');
-                        div.className = 'thumb';
-                        const img = document.createElement('img');
-                        img.src = src;
-                        div.appendChild(img);
-                        cloudAbout.appendChild(div);
-                    });
-                }
-                const cloudBuy = document.getElementById('cloudBuy');
-                if (cloudBuy) {
-                    // simple placeholders resembling map tiles
-                    for (let i=0;i<6;i++) {
-                        const div = document.createElement('div');
-                        div.className = 'thumb';
-                        const span = document.createElement('span');
-                        span.style.color = '#444';
-                        span.style.fontSize = '12px';
-                        span.textContent = 'map';
-                        div.appendChild(span);
-                        cloudBuy.appendChild(div);
-                    }
-                }
+                const cloudCatalogImg = document.getElementById('cloudCatalogImg');
+                if (cloudCatalogImg) cloudCatalogImg.src = PRODUCT_IMAGES[1];
+                const cloudAboutImg = document.getElementById('cloudAboutImg');
+                if (cloudAboutImg) cloudAboutImg.src = 'https://lh3.googleusercontent.com/d/1epVa2oRE7nviYRHZvjR8rbV7W-0uCAaJ';
+                const cloudBuyPreview = document.getElementById('cloudBuyPreview');
+                if (cloudBuyPreview) cloudBuyPreview.style.background = 'repeating-linear-gradient(45deg, rgba(0,0,0,0.08) 0 6px, rgba(0,0,0,0.12) 6px 12px)';
             } catch (_) {}
         });
 
@@ -1893,7 +1827,28 @@
 
             let touchStartY = 0;
             let revealed = false;
-            const reveal = () => { if (!revealed) { clouds.classList.add('visible'); revealed = true; } };
+            const heroTitle = document.querySelector('.hero h1');
+            const heroSub = document.querySelector('.hero .subheading');
+            const applyHeroShift = (progress) => {
+                // progress: 0..1 for clouds rising; title moves up half speed to upper half
+                const shift = Math.min(1, Math.max(0, progress)) * 30; // px
+                if (heroTitle) heroTitle.style.transform = `translateY(-${shift}px)`;
+                if (heroSub) heroSub.style.transform = `translateY(-${shift * 0.7}px)`;
+            };
+            let animStart = 0;
+            const reveal = () => {
+                if (!revealed) {
+                    clouds.classList.add('visible');
+                    revealed = true;
+                    animStart = performance.now();
+                    const animate = (t) => {
+                        const dt = Math.min(1, (t - animStart) / 600); // 0.6s same as CSS, use to drive text
+                        applyHeroShift(dt * 0.5); // half speed vs clouds
+                        if (dt < 1 && revealed) requestAnimationFrame(animate);
+                    };
+                    requestAnimationFrame(animate);
+                }
+            };
             const hideClouds = () => { clouds.classList.remove('visible'); revealed = false; };
 
             // Reveal on first wheel/touch move downward near bottom
