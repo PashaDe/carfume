@@ -780,7 +780,7 @@
             right: 0;
             bottom: 0;
             z-index: 900;
-            transform: translateY(100%);
+            transform: translateY(120%); /* keep fully hidden initially */
             transition: transform 0.6s ease;
             pointer-events: none;
         }
@@ -936,6 +936,22 @@
             animation: slideUp 0.2s ease;
             box-shadow: 0 20px 80px rgba(192, 192, 192, 0.3);
         }
+
+        .modal-header {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(192, 192, 192, 0.2);
+            background: rgba(0,0,0,0.35);
+        }
+        .modal-header.visible { display: flex; }
+        .modal-header .title { color: var(--silver); font-size: 14px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+        .modal-header .back-btn {
+            background: transparent; color: var(--silver); border: 1px solid rgba(192,192,192,0.35);
+            border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; transition: all .2s ease;
+        }
+        .modal-header .back-btn:hover { background: rgba(192,192,192,0.08); }
 
         /* Custom scrollbar for modal */
         .modal-content::-webkit-scrollbar {
@@ -1740,6 +1756,8 @@
             // reset custom container
             const customEl = document.getElementById('modalCustom');
             if (customEl) { customEl.style.display = 'none'; customEl.innerHTML = ''; }
+            const modalHeader = document.getElementById('modalHeader');
+            if (modalHeader) modalHeader.classList.remove('visible');
         }
 
         // Безопасно навешиваем обработчики после построения DOM
@@ -1849,17 +1867,19 @@
                     requestAnimationFrame(animate);
                 }
             };
-            const hideClouds = () => { clouds.classList.remove('visible'); revealed = false; };
+            const hideClouds = () => { clouds.classList.remove('visible'); revealed = false; applyHeroShift(0); };
 
             // Reveal on first wheel/touch move downward near bottom
             window.addEventListener('wheel', (e) => {
                 if (e.deltaY > 0) reveal();
+                if (e.deltaY < 0) hideClouds();
             }, { passive: true });
 
             window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
             window.addEventListener('touchmove', (e) => {
                 const dy = e.touches[0].clientY - touchStartY;
                 if (dy < -10) reveal();
+                if (dy > 10) hideClouds();
             }, { passive: true });
 
             // Cloud click handlers -> open modal content
@@ -1880,36 +1900,80 @@
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideClouds(); });
         })();
 
-        function openCatalogModal() {
-            const title = 'Каталог';
-            const desc = 'Выберите аромат для детального просмотра';
-            openGenericModal(title, desc, '', [], []);
-            const custom = document.getElementById('modalCustom');
+        function showSectionInModal(sectionId, headerText) {
+            const modal = document.getElementById('productModal');
+            const modalHeader = document.getElementById('modalHeader');
+            const modalHeaderTitle = document.getElementById('modalHeaderTitle');
+            const backBtn = document.getElementById('modalBackBtn');
+            const imgBlock = document.querySelector('.modal-image');
+            const descEl = document.getElementById('modalDescription');
+            const compBlock = document.querySelectorAll('.modal-features')[0];
+            const featBlock = document.querySelectorAll('.modal-features')[1];
             const modalCta = document.getElementById('modalCtaBtn');
+            const custom = document.getElementById('modalCustom');
+
+            // header style
+            if (modalHeader) modalHeader.classList.add('visible');
+            if (modalHeaderTitle) modalHeaderTitle.textContent = headerText || '';
+            if (backBtn) backBtn.onclick = () => closeModal();
+
+            // hide product-specific blocks
+            if (imgBlock) imgBlock.style.display = 'none';
+            if (descEl) descEl.textContent = '';
+            if (compBlock) compBlock.style.display = 'none';
+            if (featBlock) featBlock.style.display = 'none';
             if (modalCta) modalCta.style.display = 'none';
-            if (!custom) return;
-            custom.style.display = 'block';
-            const grid = document.createElement('div');
-            grid.className = 'modal-catalog-grid';
-            for (let id=1; id<=12; id++) {
-                const item = document.createElement('div');
-                item.className = 'modal-catalog-item';
-                item.onclick = () => openProductModal(id);
-                const imgWrap = document.createElement('div');
-                imgWrap.className = 'img';
-                const img = document.createElement('img');
-                img.src = PRODUCT_IMAGES[id];
-                img.alt = productData[id]?.name || '';
-                imgWrap.appendChild(img);
-                const label = document.createElement('div');
-                label.className = 'label';
-                label.textContent = productData[id]?.name || '';
-                item.appendChild(imgWrap);
-                item.appendChild(label);
-                grid.appendChild(item);
+
+            // show full section content inside modal
+            if (custom) {
+                custom.style.display = 'block';
+                custom.innerHTML = '';
+                const wrapper = document.createElement('div');
+                wrapper.style.maxHeight = 'calc(88vh - 46px)';
+                wrapper.style.overflow = 'auto';
+                wrapper.style.padding = '0 2px 6px 0';
+                // clone content from the page section
+                const source = document.querySelector(sectionId);
+                if (source) {
+                    const clone = source.cloneNode(true);
+                    // Ensure section is visible and fits modal context
+                    clone.style.display = 'block';
+                    clone.style.minHeight = 'auto';
+                    clone.style.padding = '14px 10px';
+                    // Remove map height constraints for modal if map section
+                    if (sectionId === '#buy') {
+                        const mapContainer = clone.querySelector('.map-container');
+                        if (mapContainer) { mapContainer.style.height = '480px'; mapContainer.style.minHeight = '480px'; }
+                    }
+                    wrapper.appendChild(clone);
+                } else {
+                    wrapper.textContent = 'Раздел недоступен';
+                }
+                custom.appendChild(wrapper);
+
+                // If map section, re-init a lightweight map inside the cloned content
+                if (sectionId === '#buy') {
+                    const newMapEl = custom.querySelector('#map');
+                    if (newMapEl && window.google && window.google.maps) {
+                        const previewMap = new google.maps.Map(newMapEl, {
+                            center: { lat: 53.5, lng: 28.0 },
+                            zoom: 7,
+                            styles: [ { elementType: 'geometry', stylers: [{ color: '#1a1a1a' }] } ],
+                            disableDefaultUI: true,
+                            zoomControl: true
+                        });
+                        (stores || []).forEach(s => { if (s.lat && s.lng) new google.maps.Marker({ map: previewMap, position: { lat: s.lat, lng: s.lng }, title: s.name }); });
+                    }
+                }
             }
-            custom.appendChild(grid);
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
+
+        function openCatalogModal() { showSectionInModal('#catalog', 'Каталог'); }
+        function openAboutModal() { showSectionInModal('#materials', 'О продукте'); }
+        function openBuyModal() { showSectionInModal('#buy', 'Где купить'); }
 
         function openAboutModal() {
             const title = 'О продукте';
@@ -2609,6 +2673,10 @@
     <!-- Modal Window -->
     <div id="productModal" class="modal">
         <div class="modal-content">
+            <div class="modal-header" id="modalHeader">
+                <div class="title" id="modalHeaderTitle">Раздел</div>
+                <button class="back-btn" id="modalBackBtn">Назад</button>
+            </div>
             <div class="modal-close" onclick="closeModal()">×</div>
             <div class="modal-body">
                 <div class="modal-image">
